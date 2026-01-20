@@ -7,7 +7,11 @@ class SuperRGBW : public Component {
  public:
   void set_power(bool on);
   void set_dim(float dim);
-  void set_rgbw(float r, float g, float b, float w);
+  void set_r(float r);
+  void set_g(float g);
+  void set_b(float b);
+  void set_w(float w);
+
 
   void setup() override;
   void loop() override;
