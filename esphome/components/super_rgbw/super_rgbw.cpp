@@ -82,13 +82,13 @@ void SuperRGBW::loop() {
   render_();
 }
 
-void SuperRGBW::set_fade_time(esphome::TimePeriod time) {
-  uint32_t total_ms = time.total_milliseconds();
-  if (total_ms == 0) total_ms = 1;
+void SuperRGBW::set_fade_time(uint32_t fade_ms) {
+  if (fade_ms == 0) fade_ms = 1;
 
-  fade_interval_ms_ = 20;  // loop co ~20ms
-  fade_step_ = float(fade_interval_ms_) / float(total_ms);
+  fade_interval_ms_ = 20;
+  fade_step_ = float(fade_interval_ms_) / float(fade_ms);
 }
+
 
 // ───── LOGIKA ─────
 void SuperRGBW::update_dim_from_channels_() {
