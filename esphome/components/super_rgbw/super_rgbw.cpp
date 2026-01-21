@@ -16,17 +16,17 @@ void SuperRGBW::setup() {
 
 // ───── POWER ─────
 void SuperRGBW::set_power(bool on) {
-  power_ = on;
-
   if (on) {
-    fade_level_ = 0.0f;      // ZAWSZE start od zera
+    power_ = true;
+    fading_off_ = false;
+    fade_level_ = 0.0f;
     fade_target_ = 1.0f;
   } else {
-    fade_level_ = 1.0f;      // ZAWSZE start od pełnego
+    fading_off_ = true;     // ⬅️ KLUCZ
+    fade_level_ = 1.0f;
     fade_target_ = 0.0f;
   }
 }
-
 
 // ───── KANAŁY ─────
 void SuperRGBW::set_r(float v) {
@@ -83,8 +83,10 @@ void SuperRGBW::loop() {
   last = now;
 
   if (fade_level_ == fade_target_) {
-    if (!power_) {
-      render_();
+    if (fading_off_) {
+      power_ = false;        // ⬅️ DOPIERO TERAZ
+      fading_off_ = false;
+      render_();             // finalne zero
     }
     return;
   }
@@ -97,6 +99,7 @@ void SuperRGBW::loop() {
 
   render_();
 }
+
 
 void SuperRGBW::set_fade_time(uint32_t fade_ms) {
   if (fade_ms < 20) fade_ms = 20;
