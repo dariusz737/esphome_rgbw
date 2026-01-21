@@ -153,7 +153,7 @@ void SuperRGBW::dim_toggle() {
   }
 }
 
-void SuperRGBW::loop_dim() {
+void SuperRGBW::loop() {
   if (!dim_running_) return;
 
   const float STEP = 0.02f;
