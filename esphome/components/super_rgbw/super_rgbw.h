@@ -1,6 +1,6 @@
 #pragma once
-#include "esphome/core/component.h"
-#include "esphome/components/output/float_output.h"
+#include "esphome.h"
+#include "esphome/components/number/number.h" 
 
 namespace super_rgbw {
 
@@ -51,6 +51,11 @@ class SuperRGBW : public esphome::Component {
   esphome::output::FloatOutput *out_g_{nullptr};
   esphome::output::FloatOutput *out_b_{nullptr};
   esphome::output::FloatOutput *out_w_{nullptr};
+  esphome::number::Number *r_number_{nullptr};
+  esphome::number::Number *g_number_{nullptr};
+  esphome::number::Number *b_number_{nullptr};
+  esphome::number::Number *w_number_{nullptr};
+  esphome::number::Number *dim_number_{nullptr};
 
   // state
   bool power_{false};
