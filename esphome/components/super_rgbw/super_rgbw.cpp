@@ -82,6 +82,7 @@ void SuperRGBW::loop() {
     }
 
     render_();
+    loop_dim_manual_();
     return;
   }
 
@@ -125,6 +126,44 @@ void SuperRGBW::apply_dim_(float target_dim) {
   if (w_number_) w_number_->publish_state(w_);
 
   dim_sync_lock_ = false;
+}
+
+void SuperRGBW::dim_manual_toggle() {
+  if (!dim_manual_running_) {
+    dim_manual_running_ = true;
+  } else {
+    dim_manual_dir_up_ = !dim_manual_dir_up_;
+  }
+}
+
+void SuperRGBW::dim_manual_stop() {
+  dim_manual_running_ = false;
+}
+
+void SuperRGBW::loop_dim_manual_() {
+  if (!dim_manual_running_) return;
+
+  uint32_t now = millis();
+  if (now - dim_manual_last_ms_ < 150) return;
+  dim_manual_last_ms_ = now;
+
+  const float STEP = 0.02f;
+  const float DIM_FLOOR = 0.05f;
+
+  float next = dim_ + (dim_manual_dir_up_ ? STEP : -STEP);
+
+  if (next >= 1.0f) {
+    next = 1.0f;
+    dim_manual_running_ = false;
+  }
+
+  if (next <= DIM_FLOOR) {
+    next = DIM_FLOOR;
+    dim_manual_running_ = false;
+  }
+
+  apply_dim_(next);
+  if (power_) render_();
 }
 
 // ───── RENDER ─────
