@@ -51,6 +51,9 @@ class SuperRGBW : public esphome::Component {
   float b_{0.0f};
   float w_{0.0f};
   float dim_{0.0f};
+  float fade_level_{0.0f};
+  float fade_target_{0.0f};
+  float fade_step_{0.02f};
 };
 
 }  // namespace super_rgbw
