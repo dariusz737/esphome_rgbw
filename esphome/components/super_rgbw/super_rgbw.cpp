@@ -19,14 +19,14 @@ void SuperRGBW::set_power(bool on) {
   power_ = on;
 
   if (on) {
-    // start fade-in
-    fade_level_ = 0.0f;
+    fade_level_ = 0.0f;      // ZAWSZE start od zera
     fade_target_ = 1.0f;
   } else {
-    // start fade-out
+    fade_level_ = 1.0f;      // ZAWSZE start od pełnego
     fade_target_ = 0.0f;
   }
 }
+
 
 // ───── KANAŁY ─────
 void SuperRGBW::set_r(float v) {
