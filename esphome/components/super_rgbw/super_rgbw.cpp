@@ -83,7 +83,7 @@ void SuperRGBW::loop() {
 }
 
 void SuperRGBW::set_fade_time(uint32_t fade_ms) {
-  if (fade_ms == 0) fade_ms = 1;
+  if (fade_ms < 20) fade_ms = 20;
 
   fade_interval_ms_ = 20;
   fade_step_ = float(fade_interval_ms_) / float(fade_ms);
@@ -125,20 +125,20 @@ void SuperRGBW::apply_dim_(float target_dim) {
 
 // ───── RENDER ─────
 void SuperRGBW::render_() {
-  if (!out_r_ || !out_g_ || !out_b_ || !out_w_) return;
-
   if (!power_) {
-    out_r_->set_level(r_ * fade_level_);
-    out_g_->set_level(g_ * fade_level_);
-    out_b_->set_level(b_ * fade_level_);
-    out_w_->set_level(w_ * fade_level_);
+    out_r_->set_level(0);
+    out_g_->set_level(0);
+    out_b_->set_level(0);
+    out_w_->set_level(0);
     return;
   }
 
-  out_r_->set_level(r_);
-  out_g_->set_level(g_);
-  out_b_->set_level(b_);
-  out_w_->set_level(w_);
+  float k = fade_level_;
+
+  out_r_->set_level(r_ * k);
+  out_g_->set_level(g_ * k);
+  out_b_->set_level(b_ * k);
+  out_w_->set_level(w_ * k);
 }
 
 }  // namespace super_rgbw
