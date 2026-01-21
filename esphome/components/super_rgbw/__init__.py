@@ -1,6 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import output
+from esphome.components import output, number
 from esphome.const import CONF_ID
 
 super_rgbw_ns = cg.esphome_ns.namespace("super_rgbw")
@@ -11,13 +11,20 @@ CONF_OUT_G = "out_g"
 CONF_OUT_B = "out_b"
 CONF_OUT_W = "out_w"
 
+CONF_R_NUMBER = "r_number"
+CONF_DIM_NUMBER = "dim_number"
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(SuperRGBW),
+
         cv.Required(CONF_OUT_R): cv.use_id(output.FloatOutput),
         cv.Required(CONF_OUT_G): cv.use_id(output.FloatOutput),
         cv.Required(CONF_OUT_B): cv.use_id(output.FloatOutput),
         cv.Required(CONF_OUT_W): cv.use_id(output.FloatOutput),
+
+        cv.Required(CONF_R_NUMBER): cv.use_id(number.Number),
+        cv.Required(CONF_DIM_NUMBER): cv.use_id(number.Number),
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -30,3 +37,6 @@ async def to_code(config):
     cg.add(var.set_out_g(await cg.get_variable(config[CONF_OUT_G])))
     cg.add(var.set_out_b(await cg.get_variable(config[CONF_OUT_B])))
     cg.add(var.set_out_w(await cg.get_variable(config[CONF_OUT_W])))
+
+    cg.add(var.set_r_number(await cg.get_variable(config[CONF_R_NUMBER])))
+    cg.add(var.set_dim_number(await cg.get_variable(config[CONF_DIM_NUMBER])))
