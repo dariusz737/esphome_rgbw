@@ -23,7 +23,7 @@ class SuperRGBW : public esphome::Component {
   void set_w_number(esphome::number::Number *n) { w_number_ = n; }  
   void set_r_number(esphome::number::Number *n) { r_number_ = n; }
   void set_dim_number(esphome::number::Number *n) { dim_number_ = n; }
-  void set_fade_time(esphome::TimePeriod time);
+  void set_fade_time(uint32_t fade_ms);
 
   void setup() override;
   void loop() override;
