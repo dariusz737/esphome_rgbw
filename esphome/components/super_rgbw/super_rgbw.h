@@ -25,7 +25,7 @@ class SuperRGBW : public esphome::Component {
   void set_dim_number(esphome::number::Number *n) { dim_number_ = n; }
 
   void setup() override;
-  void loop() override {}
+  void loop() override;
 
  protected:
   void render_();
