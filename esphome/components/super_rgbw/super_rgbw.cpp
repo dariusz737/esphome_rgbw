@@ -62,6 +62,7 @@ void SuperRGBW::set_dim(float v) {
   float target = clampf(v, DIM_FLOOR, 1.0f);
   apply_dim_(target);
   if (dim_number_) dim_number_->publish_state(dim_);
+  render_();
 }
 
 void SuperRGBW::loop() {
