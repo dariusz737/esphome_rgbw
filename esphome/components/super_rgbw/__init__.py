@@ -16,24 +16,27 @@ CONF_G_NUMBER = "g_number"
 CONF_B_NUMBER = "b_number"
 CONF_W_NUMBER = "w_number"
 CONF_DIM_NUMBER = "dim_number"
+
 CONF_FADE_TIME = "fade_time"
 
-CONFIG_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(SuperRGBW),
+CONFIG_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(): cv.declare_id(SuperRGBW),
 
-    cv.Required(CONF_OUT_R): cv.use_id(output.FloatOutput),
-    cv.Required(CONF_OUT_G): cv.use_id(output.FloatOutput),
-    cv.Required(CONF_OUT_B): cv.use_id(output.FloatOutput),
-    cv.Required(CONF_OUT_W): cv.use_id(output.FloatOutput),
+        cv.Required(CONF_OUT_R): cv.use_id(output.FloatOutput),
+        cv.Required(CONF_OUT_G): cv.use_id(output.FloatOutput),
+        cv.Required(CONF_OUT_B): cv.use_id(output.FloatOutput),
+        cv.Required(CONF_OUT_W): cv.use_id(output.FloatOutput),
 
-    cv.Required(CONF_R_NUMBER): cv.use_id(number.Number),
-    cv.Required(CONF_G_NUMBER): cv.use_id(number.Number),
-    cv.Required(CONF_B_NUMBER): cv.use_id(number.Number),
-    cv.Required(CONF_W_NUMBER): cv.use_id(number.Number),
-    cv.Required(CONF_DIM_NUMBER): cv.use_id(number.Number),
+        cv.Required(CONF_R_NUMBER): cv.use_id(number.Number),
+        cv.Required(CONF_G_NUMBER): cv.use_id(number.Number),
+        cv.Required(CONF_B_NUMBER): cv.use_id(number.Number),
+        cv.Required(CONF_W_NUMBER): cv.use_id(number.Number),
+        cv.Required(CONF_DIM_NUMBER): cv.use_id(number.Number),
 
-    cv.Optional(CONF_FADE_TIME, default="1s"): cv.time_period,
-}).extend(cv.COMPONENT_SCHEMA)
+        cv.Optional(CONF_FADE_TIME, default="1s"): cv.time_period,
+    }
+).extend(cv.COMPONENT_SCHEMA)
 
 
 async def to_code(config):
@@ -51,4 +54,5 @@ async def to_code(config):
     cg.add(var.set_w_number(await cg.get_variable(config[CONF_W_NUMBER])))
     cg.add(var.set_dim_number(await cg.get_variable(config[CONF_DIM_NUMBER])))
 
-    cg.add(var.set_fade_time(config[CONF_FADE_TIME].total_milliseconds))
+    fade_ms = config[CONF_FADE_TIME].total_milliseconds
+    cg.add(var.set_fade_time(fade_ms))
