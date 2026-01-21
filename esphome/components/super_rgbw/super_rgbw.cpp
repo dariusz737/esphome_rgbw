@@ -1,56 +1,46 @@
-#include "super_rgbw.h"
+#pragma once
+#include "esphome.h"
 
 namespace super_rgbw {
 
-void SuperRGBW::setup() {
-  render_();
-}
+class SuperRGBW : public esphome::Component {
+ public:
+  // Settery z YAML (lambda)
+  void set_power(bool on);
 
-void SuperRGBW::set_power(bool on) {
-  power_ = on;
-  render_();
-}
+  void set_r(float v);
+  void set_g(float v);
+  void set_b(float v);
+  void set_w(float v);
 
-void SuperRGBW::set_r(float v) {
-  r_ = v;
-  render_();
-}
+  void set_dim(float v);
 
-void SuperRGBW::set_g(float v) {
-  g_ = v;
-  render_();
-}
+  // Podpinane z __init__.py
+  void set_out_r(esphome::output::FloatOutput *out) { out_r_ = out; }
+  void set_out_g(esphome::output::FloatOutput *out) { out_g_ = out; }
+  void set_out_b(esphome::output::FloatOutput *out) { out_b_ = out; }
+  void set_out_w(esphome::output::FloatOutput *out) { out_w_ = out; }
 
-void SuperRGBW::set_b(float v) {
-  b_ = v;
-  render_();
-}
+  void setup() override;
+  void loop() override {}
 
-void SuperRGBW::set_w(float v) {
-  w_ = v;
-  render_();
-}
+ protected:
+  void render_();
 
-void SuperRGBW::set_dim(float v) {
-  dim_ = v;
-  render_();
-}
+  // PWM
+  esphome::output::FloatOutput *out_r_{nullptr};
+  esphome::output::FloatOutput *out_g_{nullptr};
+  esphome::output::FloatOutput *out_b_{nullptr};
+  esphome::output::FloatOutput *out_w_{nullptr};
 
-void SuperRGBW::render_() {
-  if (!out_r_ || !out_g_ || !out_b_ || !out_w_) return;
+  // Stan logiczny
+  bool power_{false};
 
-  if (!power_) {
-    out_r_->set_level(0);
-    out_g_->set_level(0);
-    out_b_->set_level(0);
-    out_w_->set_level(0);
-    return;
-  }
-
-  out_r_->set_level(r_ * dim_);
-  out_g_->set_level(g_ * dim_);
-  out_b_->set_level(b_ * dim_);
-  out_w_->set_level(w_ * dim_);
-}
+  float r_{0.0f};
+  float g_{0.0f};
+  float b_{0.0f};
+  float w_{0.0f};
+  float dim_{1.0f};
+};
 
 }  // namespace super_rgbw
