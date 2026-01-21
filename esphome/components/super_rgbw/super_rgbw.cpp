@@ -55,6 +55,18 @@ void SuperRGBW::set_dim(float v) {
   render_();
 }
 
+void SuperRGBW::loop() {
+  if (fade_level_ == fade_target_) return;
+
+  if (fade_level_ < fade_target_)
+    fade_level_ = clampf(fade_level_ + fade_step_, 0.0f, 1.0f);
+  else
+    fade_level_ = clampf(fade_level_ - fade_step_, 0.0f, 1.0f);
+
+  render_();
+}
+
+
 // ───── LOGIKA ─────
 void SuperRGBW::update_dim_from_channels_() {
   if (dim_sync_lock_) return;
@@ -93,10 +105,10 @@ void SuperRGBW::render_() {
   if (!out_r_ || !out_g_ || !out_b_ || !out_w_) return;
 
   if (!power_) {
-    out_r_->set_level(0);
-    out_g_->set_level(0);
-    out_b_->set_level(0);
-    out_w_->set_level(0);
+    out_r_->set_level(r_ * fade_level_);
+    out_g_->set_level(g_ * fade_level_);
+    out_b_->set_level(b_ * fade_level_);
+    out_w_->set_level(w_ * fade_level_);
     return;
   }
 
