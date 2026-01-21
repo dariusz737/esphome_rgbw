@@ -54,5 +54,7 @@ async def to_code(config):
     cg.add(var.set_r_number(await cg.get_variable(config[CONF_R_NUMBER])))
     cg.add(var.set_dim_number(await cg.get_variable(config[CONF_DIM_NUMBER])))
 
-    cg.add(var.set_fade_time(config[CONF_FADE_TIME]))
+    fade_ms = config[CONF_FADE_TIME].total_milliseconds
+    cg.add(var.set_fade_time(fade_ms))
+
 
