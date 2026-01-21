@@ -137,6 +137,44 @@ void SuperRGBW::apply_dim_(float target_dim) {
   dim_sync_lock_ = false;
 }
 
+void SuperRGBW::dim_start() {
+  dim_running_ = true;
+}
+
+void SuperRGBW::dim_stop() {
+  dim_running_ = false;
+}
+
+void SuperRGBW::dim_toggle() {
+  if (!dim_running_) {
+    dim_running_ = true;
+  } else {
+    dim_dir_up_ = !dim_dir_up_;
+  }
+}
+
+void SuperRGBW::loop_dim() {
+  if (!dim_running_) return;
+
+  const float STEP = 0.02f;
+  const float DIM_FLOOR = 0.05f;
+
+  float next = dim_ + (dim_dir_up_ ? STEP : -STEP);
+
+  if (next >= 1.0f) {
+    next = 1.0f;
+    dim_running_ = false;
+  }
+
+  if (next <= DIM_FLOOR) {
+    next = DIM_FLOOR;
+    dim_running_ = false;
+  }
+
+  apply_dim_(next);   // Twoja istniejąca logika
+}
+
+
 // ───── RENDER ─────
 void SuperRGBW::render_() {
   if (!power_) {
