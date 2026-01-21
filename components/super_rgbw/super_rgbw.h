@@ -7,16 +7,22 @@ namespace super_rgbw {
 
 class SuperRGBW : public esphome::Component {
  public:
-  // Settery wywoływane z __init__.py (to_code)
+  // --- Settery wołane z __init__.py (to_code) ---
   void set_out_r(esphome::output::FloatOutput *out) { out_r_ = out; }
   void set_out_g(esphome::output::FloatOutput *out) { out_g_ = out; }
   void set_out_b(esphome::output::FloatOutput *out) { out_b_ = out; }
   void set_out_w(esphome::output::FloatOutput *out) { out_w_ = out; }
 
-  // API wołane z YAML (lambda)
+  // --- API wołane z YAML (lambda) ---
   void set_power(bool on);
 
-  // ESPHome lifecycle
+  void set_dim(float dim);
+  void set_r(float value);
+  void set_g(float value);
+  void set_b(float value);
+  void set_w(float value);
+
+  // --- ESPHome lifecycle ---
   void setup() override;
   void loop() override;
 
@@ -30,13 +36,14 @@ class SuperRGBW : public esphome::Component {
   // Stan logiczny
   bool power_{false};
 
-  // Wartości kanałów (na razie na sztywno = 1.0)
-  float r_{1.0f};
-  float g_{1.0f};
-  float b_{1.0f};
-  float w_{1.0f};
+  // Parametry (logiczne, niezależne od ON/OFF)
+  float dim_{1.0f};
+  float r_{0.0f};
+  float g_{0.0f};
+  float b_{0.0f};
+  float w_{0.0f};
 
-  // Renderer
+  // Renderer fizycznych wyjść
   void render_();
 };
 
