@@ -3,13 +3,13 @@
 namespace super_rgbw {
 
 void SuperRGBW::setup() {
-  // przy starcie wyrenderuj aktualny stan
+  // Na starcie: wszystko zgaszone
   render_();
 }
 
 void SuperRGBW::loop() {
-  // na razie pusto
-  // (tu w przyszłości: efekty, auto-CT, animacje)
+  // Na razie NIC nie robimy w pętli
+  // (później tu wejdzie auto-CT, FX, timery itd.)
 }
 
 void SuperRGBW::set_power(bool on) {
@@ -17,52 +17,26 @@ void SuperRGBW::set_power(bool on) {
   render_();
 }
 
-void SuperRGBW::set_dim(float dim) {
-  dim_ = clamp(dim, 0.0f, 1.0f);
-  render_();
-}
-void SuperRGBW::set_r(float r) {
-  r_ = clamp(r, 0.0f, 1.0f);
-  render_();
-}
-
-void SuperRGBW::set_g(float g) {
-  g_ = clamp(g, 0.0f, 1.0f);
-  render_();
-}
-
-void SuperRGBW::set_b(float b) {
-  b_ = clamp(b, 0.0f, 1.0f);
-  render_();
-}
-
-void SuperRGBW::set_w(float w) {
-  w_ = clamp(w, 0.0f, 1.0f);
-  render_();
-}
-
-
 void SuperRGBW::render_() {
-  // jeżeli nie ma podpiętych wyjść – nic nie rób
-  if (!out_r || !out_g || !out_b || !out_w)
-    return;
+  if (out_r_ == nullptr || out_g_ == nullptr ||
+      out_b_ == nullptr || out_w_ == nullptr) {
+    return;  // zabezpieczenie
+  }
 
-  // POWER = OFF → fizycznie gaśniemy,
-  // ale STAN LOGICZNY ZOSTAJE
   if (!power_) {
-    out_r->set_level(0);
-    out_g->set_level(0);
-    out_b->set_level(0);
-    out_w->set_level(0);
+    // POWER = OFF → fizycznie gaśniemy
+    out_r_->set_level(0.0f);
+    out_g_->set_level(0.0f);
+    out_b_->set_level(0.0f);
+    out_w_->set_level(0.0f);
     return;
   }
 
-  // POWER = ON → skalujemy przez DIM
-  out_r->set_level(r_ * dim_);
-  out_g->set_level(g_ * dim_);
-  out_b->set_level(b_ * dim_);
-  out_w->set_level(w_ * dim_);
+  // POWER = ON → świecimy zapamiętanymi wartościami
+  out_r_->set_level(r_);
+  out_g_->set_level(g_);
+  out_b_->set_level(b_);
+  out_w_->set_level(w_);
 }
 
 }  // namespace super_rgbw
-
