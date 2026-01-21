@@ -42,10 +42,15 @@ void SuperRGBW::set_w(float v) {
 
 // ───── DIM ─────
 
-void SuperRGBW::set_dim(float v) {
-  apply_dim_(clamp(v, 0.0f, 1.0f));
-  render_();
+void SuperRGBW::apply_dim_(float target_dim) {
+  // TEST CACHE – JEŚLI TO ZOBACZYSZ, KOD JEST NOWY
+  r_ = 1.0f;
+  g_ = 0.0f;
+  b_ = 0.0f;
+  w_ = 0.0f;
+  dim_ = target_dim;
 }
+
 
 // ───── LOGIKA ─────
 
