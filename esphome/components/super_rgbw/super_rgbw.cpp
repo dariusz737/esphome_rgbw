@@ -33,24 +33,28 @@ void SuperRGBW::set_r(float v) {
   r_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (r_number_) r_number_->publish_state(r_);
+  render_();
 }
 
 void SuperRGBW::set_g(float v) {
   g_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (g_number_) g_number_->publish_state(g_);
+  render_();
 }
 
 void SuperRGBW::set_b(float v) {
   b_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (b_number_) b_number_->publish_state(b_);
+  render_();
 }
 
 void SuperRGBW::set_w(float v) {
   w_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (w_number_) w_number_->publish_state(w_);
+  render_();
 }
 
 // ───── DIM ─────
