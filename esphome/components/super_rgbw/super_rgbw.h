@@ -31,6 +31,12 @@ class SuperRGBW : public esphome::Component {
   void set_out_g(esphome::output::FloatOutput *o) { out_g_ = o; }
   void set_out_b(esphome::output::FloatOutput *o) { out_b_ = o; }
   void set_out_w(esphome::output::FloatOutput *o) { out_w_ = o; }
+  void set_r_number(esphome::number::Number *n) { r_number_ = n; }
+  void set_g_number(esphome::number::Number *n) { g_number_ = n; }
+  void set_b_number(esphome::number::Number *n) { b_number_ = n; }
+  void set_w_number(esphome::number::Number *n) { w_number_ = n; }
+  void set_dim_number(esphome::number::Number *n) { dim_number_ = n; }
+
 
  protected:
   // helpers
