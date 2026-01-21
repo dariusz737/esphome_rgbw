@@ -19,11 +19,21 @@ void SuperRGBW::set_power(bool on) {
   if (on) {
     power_ = true;
     fading_off_ = false;
-    fade_level_ = 0.0f;
+
+    // JEŚLI nie trwa fade → start od 0
+    if (fade_level_ <= 0.0f || fade_target_ == 0.0f) {
+      fade_level_ = 0.0f;
+    }
+
     fade_target_ = 1.0f;
   } else {
-    fading_off_ = true;     // ⬅️ KLUCZ
-    fade_level_ = 1.0f;
+    fading_off_ = true;
+
+    // JEŚLI nie trwa fade → start od 1
+    if (fade_level_ >= 1.0f || fade_target_ == 1.0f) {
+      fade_level_ = 1.0f;
+    }
+
     fade_target_ = 0.0f;
   }
 }
