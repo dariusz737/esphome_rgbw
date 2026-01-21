@@ -3,7 +3,6 @@
 
 namespace super_rgbw {
 
-// ───── helper ─────
 static inline float clampf(float v, float lo, float hi) {
   if (v < lo) return lo;
   if (v > hi) return hi;
@@ -15,17 +14,16 @@ void SuperRGBW::setup() {
 }
 
 // ───── POWER ─────
-
 void SuperRGBW::set_power(bool on) {
   power_ = on;
   render_();
 }
 
 // ───── KANAŁY ─────
-
 void SuperRGBW::set_r(float v) {
   r_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
+  if (r_number_) r_number_->publish_state(r_);
   render_();
 }
 
@@ -48,19 +46,19 @@ void SuperRGBW::set_w(float v) {
 }
 
 // ───── DIM ─────
-
 void SuperRGBW::set_dim(float v) {
   apply_dim_(clampf(v, 0.0f, 1.0f));
+  if (dim_number_) dim_number_->publish_state(dim_);
   render_();
 }
 
 // ───── LOGIKA ─────
-
 void SuperRGBW::update_dim_from_channels_() {
   if (dim_sync_lock_) return;
 
   dim_sync_lock_ = true;
   dim_ = std::max({r_, g_, b_, w_});
+  if (dim_number_) dim_number_->publish_state(dim_);
   dim_sync_lock_ = false;
 }
 
@@ -70,25 +68,21 @@ void SuperRGBW::apply_dim_(float target_dim) {
   dim_sync_lock_ = true;
 
   float max_v = std::max({r_, g_, b_, w_});
-  if (max_v <= 0.0f) {
-    dim_sync_lock_ = false;
-    return;
+  if (max_v > 0.0f) {
+    float scale = target_dim / max_v;
+    if (r_ > 0.0f) r_ = clampf(r_ * scale, 0.0f, 1.0f);
+    if (g_ > 0.0f) g_ = clampf(g_ * scale, 0.0f, 1.0f);
+    if (b_ > 0.0f) b_ = clampf(b_ * scale, 0.0f, 1.0f);
+    if (w_ > 0.0f) w_ = clampf(w_ * scale, 0.0f, 1.0f);
   }
 
-  float scale = target_dim / max_v;
-
-  if (r_ > 0.0f) r_ = clampf(r_ * scale, 0.0f, 1.0f);
-  if (g_ > 0.0f) g_ = clampf(g_ * scale, 0.0f, 1.0f);
-  if (b_ > 0.0f) b_ = clampf(b_ * scale, 0.0f, 1.0f);
-  if (w_ > 0.0f) w_ = clampf(w_ * scale, 0.0f, 1.0f);
-
   dim_ = target_dim;
+  if (r_number_) r_number_->publish_state(r_);
 
   dim_sync_lock_ = false;
 }
 
 // ───── RENDER ─────
-
 void SuperRGBW::render_() {
   if (!out_r_ || !out_g_ || !out_b_ || !out_w_) return;
 
