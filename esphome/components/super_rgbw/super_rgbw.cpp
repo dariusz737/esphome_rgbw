@@ -3,6 +3,7 @@
 
 namespace super_rgbw {
 
+static constexpr float DIM_FLOOR = 0.05f;
 static inline float clampf(float v, float lo, float hi) {
   if (v < lo) return lo;
   if (v > hi) return hi;
@@ -50,7 +51,8 @@ void SuperRGBW::set_w(float v) {
 
 // ───── DIM ─────
 void SuperRGBW::set_dim(float v) {
-  apply_dim_(clampf(v, 0.0f, 1.0f));
+  float target = clampf(v, DIM_FLOOR, 1.0f);
+  apply_dim_(target);
   if (dim_number_) dim_number_->publish_state(dim_);
   render_();
 }
@@ -91,7 +93,7 @@ void SuperRGBW::apply_dim_(float target_dim) {
     if (w_ > 0.0f) w_ = clampf(w_ * scale, 0.0f, 1.0f);
   }
 
-  dim_ = target_dim;
+  dim_ = clampf(target_dim, DIM_FLOOR, 1.0f);
   if (r_number_) r_number_->publish_state(r_);
   if (g_number_) g_number_->publish_state(g_);
   if (b_number_) b_number_->publish_state(b_);
