@@ -17,7 +17,15 @@ void SuperRGBW::setup() {
 // ───── POWER ─────
 void SuperRGBW::set_power(bool on) {
   power_ = on;
-  fade_target_ = on ? 1.0f : 0.0f;
+
+  if (on) {
+    // start fade-in
+    fade_level_ = 0.0f;
+    fade_target_ = 1.0f;
+  } else {
+    // start fade-out
+    fade_target_ = 0.0f;
+  }
 }
 
 // ───── KANAŁY ─────
@@ -67,7 +75,6 @@ void SuperRGBW::loop() {
 
   render_();
 }
-
 
 // ───── LOGIKA ─────
 void SuperRGBW::update_dim_from_channels_() {
