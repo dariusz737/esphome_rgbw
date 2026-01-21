@@ -16,7 +16,7 @@ void SuperRGBW::setup() {
 // ───── POWER ─────
 void SuperRGBW::set_power(bool on) {
   power_ = on;
-  render_();
+  fade_target_ = on ? 1.0f : 0.0f;
 }
 
 // ───── KANAŁY ─────
