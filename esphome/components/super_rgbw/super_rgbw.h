@@ -25,10 +25,15 @@ class SuperRGBW : public esphome::Component {
   void set_dim_number(esphome::number::Number *n) { dim_number_ = n; }
   void set_fade_time(uint32_t fade_ms);
 
+  void dim_start();    // start w aktualnym kierunku
+  void dim_stop();     // stop
+  void dim_toggle();   // start + zmiana kierunku
+
   void setup() override;
   void loop() override;
 
  protected:
+  void loop() override; 
   void render_();
   void update_dim_from_channels_();
   void apply_dim_(float target_dim);
@@ -59,6 +64,11 @@ class SuperRGBW : public esphome::Component {
   uint32_t fade_start_ms_{0};
   uint32_t fade_time_ms_{1000};
   bool fading_off_{false};
+
+  // === DIM STATE ===
+  bool dim_running_{false};
+  bool dim_dir_up_{true};
+  float dim_{1.0f};
 };
 
 }  // namespace super_rgbw
