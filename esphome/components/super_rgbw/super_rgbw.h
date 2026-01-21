@@ -33,7 +33,7 @@ class SuperRGBW : public esphome::Component {
   void loop() override;
 
  protected:
-  void loop_dim() override; 
+  void loop() override; 
   void render_();
   void update_dim_from_channels_();
   void apply_dim_(float target_dim);
