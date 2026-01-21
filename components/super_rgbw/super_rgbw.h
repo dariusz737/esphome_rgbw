@@ -1,3 +1,5 @@
+// build bump 1
+
 #pragma once
 
 #include "esphome/core/component.h"
