@@ -16,27 +16,18 @@ void SuperRGBW::setup() {
 
 // ───── POWER ─────
 void SuperRGBW::set_power(bool on) {
+  fade_start_  = fade_level_;               // ⬅️ aktualny poziom
+  fade_target_ = on ? 1.0f : 0.0f;
+  fade_start_ms_ = millis();
+
   if (on) {
     power_ = true;
     fading_off_ = false;
-
-    // JEŚLI nie trwa fade → start od 0
-    if (fade_level_ <= 0.0f || fade_target_ == 0.0f) {
-      fade_level_ = 0.0f;
-    }
-
-    fade_target_ = 1.0f;
   } else {
     fading_off_ = true;
-
-    // JEŚLI nie trwa fade → start od 1
-    if (fade_level_ >= 1.0f || fade_target_ == 1.0f) {
-      fade_level_ = 1.0f;
-    }
-
-    fade_target_ = 0.0f;
   }
 }
+
 
 // ───── KANAŁY ─────
 void SuperRGBW::set_r(float v) {
@@ -87,37 +78,31 @@ void SuperRGBW::set_dim(float v) {
 }
 
 void SuperRGBW::loop() {
-  static uint32_t last = 0;
-  uint32_t now = millis();
-  if (now - last < fade_interval_ms_) return;
-  last = now;
+  if (fade_level_ == fade_target_) return;
 
-  if (fade_level_ == fade_target_) {
+  uint32_t now = millis();
+  float t = float(now - fade_start_ms_) / float(fade_time_ms_);
+  if (t >= 1.0f) {
+    fade_level_ = fade_target_;
+
     if (fading_off_) {
-      power_ = false;        // ⬅️ DOPIERO TERAZ
+      power_ = false;
       fading_off_ = false;
-      render_();             // finalne zero
     }
+
+    render_();
     return;
   }
 
-  if (fade_level_ < fade_target_) {
-    fade_level_ = clampf(fade_level_ + fade_step_, 0.0f, 1.0f);
-  } else {
-    fade_level_ = clampf(fade_level_ - fade_step_, 0.0f, 1.0f);
-  }
+  fade_level_ = fade_start_ + (fade_target_ - fade_start_) * t;
+  fade_level_ = clampf(fade_level_, 0.0f, 1.0f);
 
   render_();
 }
 
-
 void SuperRGBW::set_fade_time(uint32_t fade_ms) {
-  if (fade_ms < 20) fade_ms = 20;
-
-  fade_interval_ms_ = 20;
-  fade_step_ = float(fade_interval_ms_) / float(fade_ms);
+  fade_time_ms_ = std::max<uint32_t>(fade_ms, 1);
 }
-
 
 // ───── LOGIKA ─────
 void SuperRGBW::update_dim_from_channels_() {
