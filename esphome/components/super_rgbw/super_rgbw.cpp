@@ -33,28 +33,37 @@ void SuperRGBW::set_r(float v) {
   r_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (r_number_) r_number_->publish_state(r_);
-  render_();
+  if (power_) {
+    render_();
+  }
+
 }
 
 void SuperRGBW::set_g(float v) {
   g_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (g_number_) g_number_->publish_state(g_);
-  render_();
+  if (power_) {
+    render_();
+  }
 }
 
 void SuperRGBW::set_b(float v) {
   b_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (b_number_) b_number_->publish_state(b_);
-  render_();
+  if (power_) {
+    render_();
+  }
 }
 
 void SuperRGBW::set_w(float v) {
   w_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (w_number_) w_number_->publish_state(w_);
-  render_();
+  if (power_) {
+    render_();
+  }
 }
 
 // ───── DIM ─────
@@ -62,22 +71,29 @@ void SuperRGBW::set_dim(float v) {
   float target = clampf(v, DIM_FLOOR, 1.0f);
   apply_dim_(target);
   if (dim_number_) dim_number_->publish_state(dim_);
-  render_();
+  if (power_) {
+    render_();
+  }
 }
 
 void SuperRGBW::loop() {
-  // ───── TIMING FADE ─────  
   static uint32_t last = 0;
   uint32_t now = millis();
   if (now - last < fade_interval_ms_) return;
   last = now;
-  
-  if (fade_level_ == fade_target_) return;
 
-  if (fade_level_ < fade_target_)
+  if (fade_level_ == fade_target_) {
+    if (!power_) {
+      render_();
+    }
+    return;
+  }
+
+  if (fade_level_ < fade_target_) {
     fade_level_ = clampf(fade_level_ + fade_step_, 0.0f, 1.0f);
-  else
+  } else {
     fade_level_ = clampf(fade_level_ - fade_step_, 0.0f, 1.0f);
+  }
 
   render_();
 }
