@@ -1,12 +1,13 @@
 #pragma once
 #include "esphome.h"
-#include "esphome/components/number/number.h"
 
 namespace super_rgbw {
 
 class SuperRGBW : public esphome::Component {
  public:
-  // ───── POWER / API ─────
+  void setup() override;
+  void loop() override;
+
   void set_power(bool on);
 
   void set_r(float v);
@@ -15,11 +16,6 @@ class SuperRGBW : public esphome::Component {
   void set_w(float v);
   void set_dim(float v);
 
-  // dim sterowanie
-  void dim_toggle();
-  void dim_stop();
-
-  // wiring
   void set_out_r(esphome::output::FloatOutput *out) { out_r_ = out; }
   void set_out_g(esphome::output::FloatOutput *out) { out_g_ = out; }
   void set_out_b(esphome::output::FloatOutput *out) { out_b_ = out; }
@@ -33,20 +29,11 @@ class SuperRGBW : public esphome::Component {
 
   void set_fade_time(uint32_t fade_ms);
 
-  void setup() override;
-  void loop() override;
-
  protected:
-  // ───── wewnętrzne pętle ─────
-  void loop_fade_();
-  void loop_dim_();
-
-  // ───── logika ─────
   void render_();
   void update_dim_from_channels_();
   void apply_dim_(float target_dim);
 
-  // ───── IO ─────
   esphome::output::FloatOutput *out_r_{nullptr};
   esphome::output::FloatOutput *out_g_{nullptr};
   esphome::output::FloatOutput *out_b_{nullptr};
@@ -58,7 +45,6 @@ class SuperRGBW : public esphome::Component {
   esphome::number::Number *w_number_{nullptr};
   esphome::number::Number *dim_number_{nullptr};
 
-  // ───── stan ─────
   bool power_{false};
   bool dim_sync_lock_{false};
 
@@ -66,7 +52,7 @@ class SuperRGBW : public esphome::Component {
   float g_{0.0f};
   float b_{0.0f};
   float w_{0.0f};
-  float dim_{0.05f};
+  float dim_{0.0f};
 
   // fade
   float fade_start_{0.0f};
@@ -75,10 +61,6 @@ class SuperRGBW : public esphome::Component {
   uint32_t fade_start_ms_{0};
   uint32_t fade_time_ms_{1000};
   bool fading_off_{false};
-
-  // dim loop
-  bool dim_running_{false};
-  bool dim_dir_up_{true};
 };
 
 }  // namespace super_rgbw
