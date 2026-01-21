@@ -18,6 +18,9 @@ class SuperRGBW : public esphome::Component {
   void set_out_b(esphome::output::FloatOutput *out) { out_b_ = out; }
   void set_out_w(esphome::output::FloatOutput *out) { out_w_ = out; }
 
+  void set_g_number(esphome::number::Number *n) { g_number_ = n; }
+  void set_b_number(esphome::number::Number *n) { b_number_ = n; }
+  void set_w_number(esphome::number::Number *n) { w_number_ = n; }  
   void set_r_number(esphome::number::Number *n) { r_number_ = n; }
   void set_dim_number(esphome::number::Number *n) { dim_number_ = n; }
 
@@ -35,6 +38,9 @@ class SuperRGBW : public esphome::Component {
   esphome::output::FloatOutput *out_w_{nullptr};
 
   esphome::number::Number *r_number_{nullptr};
+  esphome::number::Number *g_number_{nullptr};
+  esphome::number::Number *b_number_{nullptr};
+  esphome::number::Number *w_number_{nullptr};
   esphome::number::Number *dim_number_{nullptr};
 
   bool power_{false};
