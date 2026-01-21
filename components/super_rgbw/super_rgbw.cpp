@@ -1,10 +1,9 @@
 #include "super_rgbw.h"
-#include "esphome/core/helpers.h"
 
 namespace super_rgbw {
 
 void SuperRGBW::setup() {
-  this->render_();
+  render_();
 }
 
 void SuperRGBW::set_power(bool on) {
@@ -40,7 +39,7 @@ void SuperRGBW::render_() {
   out_r_->set_level(r_ * dim_);
   out_g_->set_level(0);
   out_b_->set_level(0);
-  out_w_->set_level(0);
+  out_w_->set_level(dim_);
 }
 
 }  // namespace super_rgbw

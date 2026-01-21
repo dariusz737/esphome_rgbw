@@ -4,7 +4,6 @@ from esphome.components import output, number
 from esphome.const import CONF_ID
 
 DEPENDENCIES = ["output", "number"]
-AUTO_LOAD = ["output", "number"]
 
 super_rgbw_ns = cg.esphome_ns.namespace("super_rgbw")
 SuperRGBW = super_rgbw_ns.class_("SuperRGBW", cg.Component)
@@ -46,5 +45,5 @@ async def to_code(config):
         cg.add(var.attach_r_number(r))
 
     if CONF_DIM_NUMBER in config:
-        dim = await cg.get_variable(config[CONF_DIM_NUMBER])
-        cg.add(var.attach_dim_number(dim))
+        d = await cg.get_variable(config[CONF_DIM_NUMBER])
+        cg.add(var.attach_dim_number(d))
