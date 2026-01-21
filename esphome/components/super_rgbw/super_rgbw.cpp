@@ -122,6 +122,8 @@ void SuperRGBW::apply_dim_(float target_dim) {
 
   dim_ = clampf(target_dim, DIM_FLOOR, 1.0f);
 
+  if (dim_number_) dim_number_->publish_state(dim_);
+
   if (r_number_) r_number_->publish_state(r_);
   if (g_number_) g_number_->publish_state(g_);
   if (b_number_) b_number_->publish_state(b_);
