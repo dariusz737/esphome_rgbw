@@ -52,10 +52,12 @@ class SuperRGBW : public esphome::Component {
   float b_{0.0f};
   float w_{0.0f};
   float dim_{0.0f};
-  float fade_level_{0.0f};
+
+  float fade_start_{0.0f};
   float fade_target_{0.0f};
-  float fade_step_{0.02f};
-  uint32_t fade_interval_ms_{20};
+  float fade_level_{0.0f};
+  uint32_t fade_start_ms_{0};
+  uint32_t fade_time_ms_{1000};
   bool fading_off_{false};
 };
 
