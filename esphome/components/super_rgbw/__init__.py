@@ -19,6 +19,7 @@ CONF_W_NUMBER = "w_number"
 CONF_DIM_NUMBER = "dim_number"
 
 CONF_FADE_TIME = "fade_time"
+CONF_AUTO_CT_SWITCH = "auto_ct_switch"
 
 CONFIG_SCHEMA = cv.Schema(
     {
