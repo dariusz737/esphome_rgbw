@@ -110,6 +110,7 @@ class SuperRGBW : public esphome::Component {
   float auto_ct_r_start_{0};
   float auto_ct_g_start_{0};
   float auto_ct_b_start_{0};
+  float auto_ct_w_start_{0};
   float auto_ct_dim_snapshot_{0};
   bool auto_ct_internal_change_{false};
 

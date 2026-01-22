@@ -34,6 +34,7 @@ void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
   auto_ct_r_start_ = r_;
   auto_ct_g_start_ = g_;
   auto_ct_b_start_ = b_;
+  auto_ct_w_start_ = w_;
   auto_ct_dim_snapshot_ = dim_;
 }
 
@@ -55,7 +56,7 @@ void SuperRGBW::loop() {
       r_ = auto_ct_r_start_ * (1.0f - k);
       g_ = auto_ct_g_start_ * (1.0f - k);
       b_ = auto_ct_b_start_ * (1.0f - k);
-      w_ = auto_ct_dim_snapshot_ * k;
+      w_ = auto_ct_w_start_ + (auto_ct_dim_snapshot_ - auto_ct_w_start_) * k;
 
       if (r_number_) r_number_->publish_state(r_);
       if (g_number_) g_number_->publish_state(g_);
