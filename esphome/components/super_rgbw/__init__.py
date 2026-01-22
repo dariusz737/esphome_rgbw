@@ -1,12 +1,14 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import output, number
-from esphome.const import CONF_ID
-from esphome.components import switch
 
+from esphome.components import output, number, switch
+from esphome.const import CONF_ID
+
+                                                  # Namespace i klasa C++ komponentu
 super_rgbw_ns = cg.esphome_ns.namespace("super_rgbw")
 SuperRGBW = super_rgbw_ns.class_("SuperRGBW", cg.Component)
 
+                                                  # Klucze konfiguracyjne
 CONF_OUT_R = "out_r"
 CONF_OUT_G = "out_g"
 CONF_OUT_B = "out_b"
@@ -21,6 +23,7 @@ CONF_DIM_NUMBER = "dim_number"
 CONF_FADE_TIME = "fade_time"
 CONF_AUTO_CT_SWITCH = "auto_ct_switch"
 
+                                                  # Schemat konfiguracji komponentu
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(SuperRGBW),
@@ -38,28 +41,34 @@ CONFIG_SCHEMA = cv.Schema(
 
         cv.Optional(CONF_FADE_TIME, default="1s"): cv.time_period,
         cv.Optional(CONF_AUTO_CT_SWITCH): cv.use_id(switch.Switch),
-
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
-
+                                                  # Generowanie kodu C++
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
+                                                  # Wyjscia PWM
     cg.add(var.set_out_r(await cg.get_variable(config[CONF_OUT_R])))
     cg.add(var.set_out_g(await cg.get_variable(config[CONF_OUT_G])))
     cg.add(var.set_out_b(await cg.get_variable(config[CONF_OUT_B])))
     cg.add(var.set_out_w(await cg.get_variable(config[CONF_OUT_W])))
 
+                                                  # Encje Number
     cg.add(var.set_r_number(await cg.get_variable(config[CONF_R_NUMBER])))
     cg.add(var.set_g_number(await cg.get_variable(config[CONF_G_NUMBER])))
     cg.add(var.set_b_number(await cg.get_variable(config[CONF_B_NUMBER])))
     cg.add(var.set_w_number(await cg.get_variable(config[CONF_W_NUMBER])))
     cg.add(var.set_dim_number(await cg.get_variable(config[CONF_DIM_NUMBER])))
 
+                                                  # Konfiguracja fade
     cg.add(var.set_fade_time(config[CONF_FADE_TIME].total_milliseconds))
+
+                                                  # Opcjonalny switch Auto CT
     if CONF_AUTO_CT_SWITCH in config:
-        cg.add(var.set_auto_ct_switch(
-            await cg.get_variable(config[CONF_AUTO_CT_SWITCH])
-        ))
+        cg.add(
+            var.set_auto_ct_switch(
+                await cg.get_variable(config[CONF_AUTO_CT_SWITCH])
+            )
+        )

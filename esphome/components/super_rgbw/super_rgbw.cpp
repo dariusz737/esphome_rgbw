@@ -1,6 +1,7 @@
 #include "super_rgbw.h"
 #include <algorithm>
 
+                                                  // Pomocnicze
 namespace super_rgbw {
 
 static constexpr float DIM_FLOOR = 0.05f;
@@ -11,6 +12,7 @@ static inline float clampf(float v, float lo, float hi) {
   return v;
 }
 
+                                                  // Setup
 void SuperRGBW::setup() {
   if (r_number_) r_ = r_number_->state;
   if (g_number_) g_ = g_number_->state;
@@ -21,14 +23,13 @@ void SuperRGBW::setup() {
   render_();
 }
 
-// ───── AUTO CT ─────
+                                                  // Auto CT start
 void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
   if (!auto_ct_enabled_) return;
 
   auto_ct_running_ = true;
   auto_ct_step_ = 0;
   auto_ct_last_ms_ = millis();
-
   auto_ct_step_interval_ms_ = duration_ms / 30;
 
   auto_ct_r_start_ = r_;
@@ -38,11 +39,9 @@ void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
   auto_ct_dim_snapshot_ = dim_;
 }
 
+                                                  // Loop
 void SuperRGBW::loop() {
 
-// ───── AUTO CT LOOP ─────
-
-  // Auto CT in progress
   if (auto_ct_running_) {
     uint32_t now = millis();
     if (now - auto_ct_last_ms_ >= auto_ct_step_interval_ms_) {
@@ -62,10 +61,8 @@ void SuperRGBW::loop() {
       if (g_number_) g_number_->publish_state(g_);
       if (b_number_) b_number_->publish_state(b_);
       if (w_number_) w_number_->publish_state(w_);
-      if (dim_number_) dim_number_->publish_state(dim_);
 
       auto_ct_internal_change_ = false;
-
 
       if (power_) render_();
 
@@ -73,8 +70,7 @@ void SuperRGBW::loop() {
         auto_ct_running_ = false;
       }
     }
-}
-
+  }
 
   if (fade_level_ != fade_target_) {
     uint32_t now = millis();
@@ -97,8 +93,7 @@ void SuperRGBW::loop() {
   loop_dim_manual_();
 }
 
-// ───── POWER ─────
-
+                                                  // Power
 void SuperRGBW::set_power(bool on) {
   fade_start_ = fade_level_;
   fade_target_ = on ? 1.0f : 0.0f;
@@ -112,18 +107,8 @@ void SuperRGBW::set_power(bool on) {
   }
 }
 
-// ───── CHANNELS ─────
-
+                                                  // RGBW
 void SuperRGBW::set_r(float v) {
-
-  if (auto_ct_running_ && !auto_ct_internal_change_) {
-    auto_ct_running_ = false;
-    auto_ct_enabled_ = false;
-    if (auto_ct_switch_) {
-      auto_ct_switch_->publish_state(false);
-    }
-  }
-
   r_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (r_number_) r_number_->publish_state(r_);
@@ -131,15 +116,6 @@ void SuperRGBW::set_r(float v) {
 }
 
 void SuperRGBW::set_g(float v) {
-
-  if (auto_ct_running_ && !auto_ct_internal_change_) {
-    auto_ct_running_ = false;
-    auto_ct_enabled_ = false;
-    if (auto_ct_switch_) {
-      auto_ct_switch_->publish_state(false);
-    }
-  }
-
   g_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (g_number_) g_number_->publish_state(g_);
@@ -147,15 +123,6 @@ void SuperRGBW::set_g(float v) {
 }
 
 void SuperRGBW::set_b(float v) {
-
-  if (auto_ct_running_ && !auto_ct_internal_change_) {
-    auto_ct_running_ = false;
-    auto_ct_enabled_ = false;
-    if (auto_ct_switch_) {
-      auto_ct_switch_->publish_state(false);
-    }
-  }
-
   b_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (b_number_) b_number_->publish_state(b_);
@@ -163,40 +130,20 @@ void SuperRGBW::set_b(float v) {
 }
 
 void SuperRGBW::set_w(float v) {
-
-  if (auto_ct_running_ && !auto_ct_internal_change_) {
-    auto_ct_running_ = false;
-    auto_ct_enabled_ = false;
-    if (auto_ct_switch_) {
-      auto_ct_switch_->publish_state(false);
-    }
-  }
-
   w_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (w_number_) w_number_->publish_state(w_);
   if (power_) render_();
 }
 
-// ───── DIM ─────
-
+                                                  // DIM
 void SuperRGBW::set_dim(float v) {
-
-  if (auto_ct_running_ && !auto_ct_internal_change_) {
-    auto_ct_running_ = false;
-    auto_ct_enabled_ = false;
-    if (auto_ct_switch_) {
-      auto_ct_switch_->publish_state(false);
-    }
-  }
-
   apply_dim_(clampf(v, DIM_FLOOR, 1.0f));
   if (dim_number_) dim_number_->publish_state(dim_);
   if (power_) render_();
 }
 
-// ───── INTERNAL LOGIC ─────
-
+                                                  // DIM z kanalow
 void SuperRGBW::update_dim_from_channels_() {
   if (dim_sync_lock_) return;
   dim_sync_lock_ = true;
@@ -207,6 +154,7 @@ void SuperRGBW::update_dim_from_channels_() {
   dim_sync_lock_ = false;
 }
 
+                                                  // Skalowanie DIM
 void SuperRGBW::apply_dim_(float target_dim) {
   if (dim_sync_lock_) return;
   dim_sync_lock_ = true;
@@ -231,21 +179,15 @@ void SuperRGBW::apply_dim_(float target_dim) {
   dim_sync_lock_ = false;
 }
 
-// ───── MANUAL DIM ─────
-
+                                                  // Reczne dimowanie
 void SuperRGBW::dim_manual_toggle() {
   if (!dim_manual_running_) {
     dim_manual_running_ = true;
-
-    // poniżej 50% → w górę, powyżej → w dół
     dim_manual_dir_up_ = (dim_ < 0.5f);
-
   } else {
-    // w trakcie – zmiana kierunku
     dim_manual_dir_up_ = !dim_manual_dir_up_;
   }
 }
-
 
 void SuperRGBW::dim_manual_stop() {
   dim_manual_running_ = false;
@@ -269,18 +211,8 @@ void SuperRGBW::loop_dim_manual_() {
   if (power_) render_();
 }
 
-// ───── SCENES ─────
-
+                                                  // Sceny
 void SuperRGBW::set_scene(Scene scene) {
-
-  if (auto_ct_running_ && !auto_ct_internal_change_) {
-    auto_ct_running_ = false;
-    auto_ct_enabled_ = false;
-    if (auto_ct_switch_) {
-      auto_ct_switch_->publish_state(false);
-    }
-  }
-
   current_scene_ = scene;
   float d = dim_;
 
@@ -307,8 +239,7 @@ void SuperRGBW::scene_cold()    { set_scene(SCENE_COLD); }
 void SuperRGBW::scene_neutral() { set_scene(SCENE_NEUTRAL); }
 void SuperRGBW::scene_warm()    { set_scene(SCENE_WARM); }
 
-// ───── RENDER ─────
-
+                                                  // Render
 void SuperRGBW::render_() {
   if (!power_) {
     out_r_->set_level(0);
@@ -325,6 +256,7 @@ void SuperRGBW::render_() {
   out_w_->set_level(w_ * k);
 }
 
+                                                  // Fade time
 void SuperRGBW::set_fade_time(uint32_t fade_ms) {
   fade_time_ms_ = std::max<uint32_t>(fade_ms, 1);
 }
