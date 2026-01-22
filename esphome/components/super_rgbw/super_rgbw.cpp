@@ -20,6 +20,12 @@ static inline float clampf(float v, float lo, float hi) {
                               // Component setup: render initial output state
 
 void SuperRGBW::setup() {
+  if (r_number_) r_ = r_number_->state;
+  if (g_number_) g_ = g_number_->state;
+  if (b_number_) b_ = b_number_->state;
+  if (w_number_) w_ = w_number_->state;
+  if (dim_number_) dim_ = dim_number_->state;
+
   render_();
 }
 
@@ -41,10 +47,6 @@ void SuperRGBW::set_power(bool on) {
 }
 
                               // Section: RGBW channel setters
-
-                              // ───── RGBW ─────
-
-                              // Set red channel level
 
 void SuperRGBW::set_r(float v) {
   r_ = clampf(v, 0.0f, 1.0f);
@@ -79,9 +81,6 @@ void SuperRGBW::set_w(float v) {
   if (w_number_) w_number_->publish_state(w_);
   if (power_) render_();
 }
-
-                              // Section: Master dim control (scales channels)
-
                               // ───── DIM ─────
 
                               // Set master dim level
@@ -96,8 +95,6 @@ void SuperRGBW::set_dim(float v) {
                               // Main loop: fade updates + manual dim handling
 
 void SuperRGBW::loop() {
-
-                              // ───── FADE ─────
 
   if (fade_level_ != fade_target_) {
     uint32_t now = millis();
@@ -254,7 +251,6 @@ void SuperRGBW::set_scene(Scene scene) {
     render_();
   }
 }
-
 
                               // Scene control: cycle to next preset
 
