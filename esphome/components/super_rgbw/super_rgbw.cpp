@@ -14,6 +14,15 @@ static inline float clampf(float v, float lo, float hi) {
 
                                                   // Setup
 void SuperRGBW::setup() {
+
+  if (auto_ct_switch_) {
+    auto_ct_switch_->add_on_state_callback(
+      [this](bool state) {
+        this->set_auto_ct_enabled(state);
+      }
+    );
+  }
+
   if (r_number_) r_ = r_number_->state;
   if (g_number_) g_ = g_number_->state;
   if (b_number_) b_ = b_number_->state;
@@ -22,7 +31,6 @@ void SuperRGBW::setup() {
 
   render_();
 }
-
                                                   // Auto CT start
 void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
   if (!auto_ct_enabled_) return;
@@ -264,72 +272,47 @@ void SuperRGBW::scene_warm()    { set_scene(SCENE_WARM); }
 
                                                   // Przerwanie Auto CT przez uzytkownika
 void SuperRGBW::maybe_cancel_auto_ct_() {
-  if (auto_ct_running_ && !auto_ct_internal_change_) {
-    auto_ct_running_ = false;
-    auto_ct_enabled_ = false;
+  if (auto_ct_internal_change_) return;
 
-    if (auto_ct_switch_) {
-      auto_ct_switch_->publish_state(false);
-    }
+  if (!auto_ct_running_ && !auto_ct_enabled_) return;
+
+  auto_ct_running_ = false;
+  auto_ct_enabled_ = false;
+
+  if (auto_ct_switch_) {
+    auto_ct_switch_->publish_state(false);
   }
 }
 
+void SuperRGBW::set_auto_ct_enabled(bool v) {
+  if (!v) {
+    maybe_cancel_auto_ct_();
+  } else {
+    auto_ct_enabled_ = true;
+  }
+}
+
+
 void SuperRGBW::handle_auto_ct_time_() {
-  if (!auto_ct_enabled_) {
-    ESP_LOGD("super_rgbw", "Auto CT disabled");
-    return;
-  }
-  if (!time_) {
-    ESP_LOGD("super_rgbw", "No time component");
-    return;
-  }
-  if (!auto_ct_start_min_) {
-    ESP_LOGD("super_rgbw", "No start_min number");
-    return;
-  }
-  if (!auto_ct_duration_) {
-    ESP_LOGD("super_rgbw", "No duration number");
-    return;
-  }
+  if (!auto_ct_enabled_) return;
+  if (!time_) return;
+  if (!auto_ct_start_min_) return;
+  if (!auto_ct_duration_) return;
 
   auto now = time_->now();
-  if (!now.is_valid()) {
-    ESP_LOGD("super_rgbw", "Time not valid yet");
-    return;
-  }
+  if (!now.is_valid()) return;
 
   int now_min = now.hour * 60 + now.minute;
   int start_min = int(auto_ct_start_min_->state);
 
-  ESP_LOGD(
-    "super_rgbw",
-    "Time check: now=%02d:%02d (%d) start_min=%d last_day=%d today=%d",
-    now.hour,
-    now.minute,
-    now_min,
-    start_min,
-    last_auto_ct_day_,
-    now.day_of_year
-  );
-
   if (now_min < start_min) return;
   if (now_min > start_min + 1) return;
 
-  if (now.day_of_year == last_auto_ct_day_) {
-    ESP_LOGD("super_rgbw", "Already started today");
-    return;
-  }
-
+  if (now.day_of_year == last_auto_ct_day_) return;
   last_auto_ct_day_ = now.day_of_year;
 
   uint32_t duration_ms =
       uint32_t(auto_ct_duration_->state) * 60000UL;
-
-  ESP_LOGI(
-    "super_rgbw",
-    "AUTO CT START: duration=%u ms",
-    duration_ms
-  );
 
   auto_ct_start(duration_ms);
 }
