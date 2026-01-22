@@ -1,26 +1,32 @@
 #include "super_rgbw.h"
 #include <algorithm>
 
-// Component implementation for RGBW controller
+                              // Component implementation for RGBW controller
+
 namespace super_rgbw {
 
-// Minimum dim level to avoid complete blackout during dimming
+                              // Minimum dim level to avoid complete blackout during dimming
+
 static constexpr float DIM_FLOOR = 0.05f;
 
-// Utility: clamp float to [lo, hi]
+                              // Utility: clamp float to [lo, hi]
+
 static inline float clampf(float v, float lo, float hi) {
   if (v < lo) return lo;
   if (v > hi) return hi;
   return v;
 }
 
-// Component setup: render initial output state
+                              // Component setup: render initial output state
+
 void SuperRGBW::setup() {
   render_();
 }
 
-// Section: Power control with fade transition
-// ───── POWER ─────
+                              // Section: Power control with fade transition
+
+                              // ───── POWER ─────
+
 void SuperRGBW::set_power(bool on) {
   fade_start_ = fade_level_;
   fade_target_ = on ? 1.0f : 0.0f;
@@ -34,14 +40,20 @@ void SuperRGBW::set_power(bool on) {
   }
 }
 
-// Section: RGBW channel setters
-// ───── RGBW ─────
+                              // Section: RGBW channel setters
+
+                              // ───── RGBW ─────
+
+                              // Set red channel level
+
 void SuperRGBW::set_r(float v) {
   r_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (r_number_) r_number_->publish_state(r_);
   if (power_) render_();
 }
+
+                              // Set green channel level
 
 void SuperRGBW::set_g(float v) {
   g_ = clampf(v, 0.0f, 1.0f);
@@ -50,12 +62,16 @@ void SuperRGBW::set_g(float v) {
   if (power_) render_();
 }
 
+                              // Set blue channel level
+
 void SuperRGBW::set_b(float v) {
   b_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (b_number_) b_number_->publish_state(b_);
   if (power_) render_();
 }
+
+                              // Set white channel level
 
 void SuperRGBW::set_w(float v) {
   w_ = clampf(v, 0.0f, 1.0f);
@@ -64,8 +80,12 @@ void SuperRGBW::set_w(float v) {
   if (power_) render_();
 }
 
-// Section: Master dim control (scales channels)
-// ───── DIM ─────
+                              // Section: Master dim control (scales channels)
+
+                              // ───── DIM ─────
+
+                              // Set master dim level
+
 void SuperRGBW::set_dim(float v) {
   float target = clampf(v, DIM_FLOOR, 1.0f);
   apply_dim_(target);
@@ -73,10 +93,12 @@ void SuperRGBW::set_dim(float v) {
   if (power_) render_();
 }
 
-// Main loop: fade updates + manual dim handling
+                              // Main loop: fade updates + manual dim handling
+
 void SuperRGBW::loop() {
 
-  // ───── FADE ─────
+                              // ───── FADE ─────
+
   if (fade_level_ != fade_target_) {
     uint32_t now = millis();
     float t = float(now - fade_start_ms_) / float(fade_time_ms_);
@@ -96,19 +118,24 @@ void SuperRGBW::loop() {
     render_();
   }
 
-  // ───── DIM MANUAL (ZAWSZE SPRAWDZANY) ─────
+                              // ───── DIM MANUAL (ZAWSZE SPRAWDZANY) ─────
+
   loop_dim_manual_();
 }
 
 
-// Configuration: set fade duration (ms)
+                              // Configuration: set fade duration (ms)
+
 void SuperRGBW::set_fade_time(uint32_t fade_ms) {
   fade_time_ms_ = std::max<uint32_t>(fade_ms, 1);
 }
 
-// Section: Internal logic (dim sync and scaling)
-// ───── LOGIKA ─────
-// Sync dim value based on max channel
+                              // Section: Internal logic (dim sync and scaling)
+
+                              // ───── LOGIKA ─────
+
+                              // Sync dim value based on max channel
+
 void SuperRGBW::update_dim_from_channels_() {
   if (dim_sync_lock_) return;
 
@@ -118,7 +145,8 @@ void SuperRGBW::update_dim_from_channels_() {
   dim_sync_lock_ = false;
 }
 
-// Apply dim by scaling all channels proportionally
+                              // Apply dim by scaling all channels proportionally
+
 void SuperRGBW::apply_dim_(float target_dim) {
   if (dim_sync_lock_) return;
   dim_sync_lock_ = true;
@@ -144,24 +172,30 @@ void SuperRGBW::apply_dim_(float target_dim) {
   dim_sync_lock_ = false;
 }
 
-// Manual dim: toggle run state and direction
+                              // Manual dim: toggle run state and direction
+
 void SuperRGBW::dim_manual_toggle() {
   if (!dim_manual_running_) {
     dim_manual_running_ = true;
     dim_manual_dir_up_ = !dim_manual_dir_up_;   // zmiana kierunku przy starcie
+
   } else {
     dim_manual_dir_up_ = !dim_manual_dir_up_;   // zmiana w trakcie
+
   }
 }
 
-// Manual dim: stop immediately
+                              // Manual dim: stop immediately
+
 void SuperRGBW::dim_manual_stop() {
   dim_manual_running_ = false;
   dim_cycle_finished_ = true;   // ⬅️ STOP kończy cykl
+
 }
 
 
-// Manual dim loop: step brightness over time
+                              // Manual dim loop: step brightness over time
+
 void SuperRGBW::loop_dim_manual_() {
   if (!dim_manual_running_) return;
 
@@ -187,6 +221,8 @@ void SuperRGBW::loop_dim_manual_() {
   apply_dim_(next);
   if (power_) render_();
 }
+
+                              // Scene control: apply scene preset
 
 void SuperRGBW::set_scene(Scene scene) {
   current_scene_ = scene;
@@ -220,6 +256,8 @@ void SuperRGBW::set_scene(Scene scene) {
 }
 
 
+                              // Scene control: cycle to next preset
+
 void SuperRGBW::next_scene() {
   switch (current_scene_) {
     case SCENE_COLD:
@@ -234,22 +272,31 @@ void SuperRGBW::next_scene() {
   }
 }
 
+                              // Scene shortcut: cold
+
 void SuperRGBW::scene_cold() {
   set_scene(SCENE_COLD);
 }
 
+                              // Scene shortcut: neutral
+
 void SuperRGBW::scene_neutral() {
   set_scene(SCENE_NEUTRAL);
 }
+
+                              // Scene shortcut: warm
 
 void SuperRGBW::scene_warm() {
   set_scene(SCENE_WARM);
 }
 
 
-// Section: Render output to PWM channels
-// ───── RENDER ─────
-// Render current RGBW values with fade multiplier
+                              // Section: Render output to PWM channels
+
+                              // ───── RENDER ─────
+
+                              // Render current RGBW values with fade multiplier
+
 void SuperRGBW::render_() {
   if (!power_) {
     out_r_->set_level(0);
