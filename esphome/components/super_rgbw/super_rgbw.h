@@ -7,6 +7,14 @@ namespace super_rgbw {
 // Main component class
 class SuperRGBW : public esphome::Component {
  public:
+
+  // Available lighting scenes
+  enum Scene {
+    SCENE_COLD,     // RGB only (cold light)
+    SCENE_NEUTRAL,  // RGBW balanced
+    SCENE_WARM      // W only (warm light)
+  };
+
   // ESPHome lifecycle
   void setup() override;
   void loop() override;
@@ -20,6 +28,13 @@ class SuperRGBW : public esphome::Component {
   void set_b(float v);
   void set_w(float v);
   void set_dim(float v);
+
+  // Scene control (applied at current DIM level)
+  void scene_cold();
+  void scene_neutral();
+  void scene_warm();
+  void scene_next();
+
 
   // Bind PWM outputs
   void set_out_r(esphome::output::FloatOutput *out) { out_r_ = out; }
@@ -42,6 +57,9 @@ class SuperRGBW : public esphome::Component {
   void dim_manual_stop();
 
  protected:
+   // Current active lighting scene
+  Scene current_scene_{SCENE_NEUTRAL};
+  
   // Internal logic
   void render_();
   void update_dim_from_channels_();

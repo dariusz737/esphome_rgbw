@@ -188,6 +188,55 @@ void SuperRGBW::loop_dim_manual_() {
   if (power_) render_();
 }
 
+// ───── SCENES ─────
+void SuperRGBW::set_scene(Scene scene) {
+  current_scene_ = scene;
+
+  // keep current dim
+  float d = dim_;
+
+  switch (scene) {
+    case SCENE_COLD:
+      r_ = 0.0f;
+      g_ = d;
+      b_ = d;
+      w_ = 0.0f;
+      break;
+
+    case SCENE_NEUTRAL:
+      r_ = d;
+      g_ = d;
+      b_ = d;
+      w_ = d;
+      break;
+
+    case SCENE_WARM:
+      r_ = 0.0f;
+      g_ = 0.0f;
+      b_ = 0.0f;
+      w_ = d;
+      break;
+  }
+
+  if (power_) {
+    render_();
+  }
+}
+
+void SuperRGBW::next_scene() {
+  switch (current_scene_) {
+    case SCENE_COLD:
+      set_scene(SCENE_NEUTRAL);
+      break;
+    case SCENE_NEUTRAL:
+      set_scene(SCENE_WARM);
+      break;
+    case SCENE_WARM:
+      set_scene(SCENE_COLD);
+      break;
+  }
+}
+
 // Section: Render output to PWM channels
 // ───── RENDER ─────
 // Render current RGBW values with fade multiplier
