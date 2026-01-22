@@ -143,10 +143,6 @@ void SuperRGBW::dim_manual_toggle() {
 
 void SuperRGBW::dim_manual_stop() {
   dim_manual_running_ = false;
-}
-
-void SuperRGBW::dim_manual_stop() {
-  dim_manual_running_ = false;
   dim_cycle_finished_ = true;   // ⬅️ STOP kończy cykl
 }
 
