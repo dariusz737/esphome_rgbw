@@ -50,10 +50,15 @@ void SuperRGBW::loop() {
 
       float k = float(auto_ct_step_) / 30.0f;
 
+      auto_ct_internal_change_ = true;
+
       r_ = auto_ct_r_start_ * (1.0f - k);
       g_ = auto_ct_g_start_ * (1.0f - k);
       b_ = auto_ct_b_start_ * (1.0f - k);
       w_ = auto_ct_dim_snapshot_ * k;
+
+      auto_ct_internal_change_ = false;
+
 
       if (power_) render_();
 
@@ -104,10 +109,10 @@ void SuperRGBW::set_power(bool on) {
 
 void SuperRGBW::set_r(float v) {
 
-  if (auto_ct_running_) {
-  auto_ct_running_ = false;
-  auto_ct_enabled_ = false;
-}
+  if (auto_ct_running_ && !auto_ct_internal_change_) {
+    auto_ct_running_ = false;
+    auto_ct_enabled_ = false;
+  }
 
   r_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -117,10 +122,10 @@ void SuperRGBW::set_r(float v) {
 
 void SuperRGBW::set_g(float v) {
 
-  if (auto_ct_running_) {
-  auto_ct_running_ = false;
-  auto_ct_enabled_ = false;
-}
+  if (auto_ct_running_ && !auto_ct_internal_change_) {
+    auto_ct_running_ = false;
+    auto_ct_enabled_ = false;
+  }
 
   g_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -130,10 +135,10 @@ void SuperRGBW::set_g(float v) {
 
 void SuperRGBW::set_b(float v) {
 
-  if (auto_ct_running_) {
-  auto_ct_running_ = false;
-  auto_ct_enabled_ = false;
-}
+  if (auto_ct_running_ && !auto_ct_internal_change_) {
+    auto_ct_running_ = false;
+    auto_ct_enabled_ = false;
+  }
 
   b_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -143,10 +148,10 @@ void SuperRGBW::set_b(float v) {
 
 void SuperRGBW::set_w(float v) {
 
-  if (auto_ct_running_) {
-  auto_ct_running_ = false;
-  auto_ct_enabled_ = false;
-}
+  if (auto_ct_running_ && !auto_ct_internal_change_) {
+    auto_ct_running_ = false;
+    auto_ct_enabled_ = false;
+  }
 
   w_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -158,10 +163,10 @@ void SuperRGBW::set_w(float v) {
 
 void SuperRGBW::set_dim(float v) {
 
-  if (auto_ct_running_) {
-  auto_ct_running_ = false;
-  auto_ct_enabled_ = false;
-}
+  if (auto_ct_running_ && !auto_ct_internal_change_) {
+    auto_ct_running_ = false;
+    auto_ct_enabled_ = false;
+  }
 
   apply_dim_(clampf(v, DIM_FLOOR, 1.0f));
   if (dim_number_) dim_number_->publish_state(dim_);
@@ -246,10 +251,10 @@ void SuperRGBW::loop_dim_manual_() {
 
 void SuperRGBW::set_scene(Scene scene) {
 
-  if (auto_ct_running_) {
-  auto_ct_running_ = false;
-  auto_ct_enabled_ = false;
-}
+  if (auto_ct_running_ && !auto_ct_internal_change_) {
+    auto_ct_running_ = false;
+    auto_ct_enabled_ = false;
+  }
 
   current_scene_ = scene;
   float d = dim_;
