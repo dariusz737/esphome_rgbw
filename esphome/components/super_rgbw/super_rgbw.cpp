@@ -188,37 +188,24 @@ void SuperRGBW::loop_dim_manual_() {
   if (power_) render_();
 }
 
-// ───── SCENES ─────
 void SuperRGBW::set_scene(Scene scene) {
   current_scene_ = scene;
-
-  // keep current dim
   float d = dim_;
 
   switch (scene) {
     case SCENE_COLD:
-      r_ = 0.0f;
-      g_ = d;
-      b_ = d;
-      w_ = 0.0f;
+      r_ = 0.0f; g_ = d; b_ = d; w_ = 0.0f;
       break;
 
     case SCENE_NEUTRAL:
-      r_ = d;
-      g_ = d;
-      b_ = d;
-      w_ = d;
+      r_ = d; g_ = d; b_ = d; w_ = d;
       break;
 
     case SCENE_WARM:
-      r_ = 0.0f;
-      g_ = 0.0f;
-      b_ = 0.0f;
-      w_ = d;
+      r_ = 0.0f; g_ = 0.0f; b_ = 0.0f; w_ = d;
       break;
   }
-  
-  // Sync dim and publish states to HA
+
   update_dim_from_channels_();
 
   if (r_number_) r_number_->publish_state(r_);
@@ -230,6 +217,7 @@ void SuperRGBW::set_scene(Scene scene) {
   if (power_) {
     render_();
   }
+}
 
 
 void SuperRGBW::next_scene() {
