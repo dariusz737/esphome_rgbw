@@ -29,11 +29,13 @@ class SuperRGBW : public esphome::Component {
   void set_w(float v);
   void set_dim(float v);
 
-  // Scene control (applied at current DIM level)
+  // Scene control
+  void set_scene(Scene scene);
+  void next_scene();
+
   void scene_cold();
   void scene_neutral();
   void scene_warm();
-  void scene_next();
 
   // Bind PWM outputs
   void set_out_r(esphome::output::FloatOutput *out) { out_r_ = out; }

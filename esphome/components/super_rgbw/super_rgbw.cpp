@@ -217,24 +217,31 @@ void SuperRGBW::set_scene(Scene scene) {
       w_ = d;
       break;
   }
+  
+  // Sync dim and publish states to HA
+  update_dim_from_channels_();
+
+  if (r_number_) r_number_->publish_state(r_);
+  if (g_number_) g_number_->publish_state(g_);
+  if (b_number_) b_number_->publish_state(b_);
+  if (w_number_) w_number_->publish_state(w_);
+  if (dim_number_) dim_number_->publish_state(dim_);
 
   if (power_) {
     render_();
   }
-}
+
 
 void SuperRGBW::next_scene() {
   switch (current_scene_) {
     case SCENE_COLD:
-      scene_neutral();
+      set_scene(SCENE_NEUTRAL);
       break;
-
     case SCENE_NEUTRAL:
-      scene_warm();
+      set_scene(SCENE_WARM);
       break;
-
     case SCENE_WARM:
-      scene_cold();
+      set_scene(SCENE_COLD);
       break;
   }
 }
