@@ -57,6 +57,12 @@ void SuperRGBW::loop() {
       b_ = auto_ct_b_start_ * (1.0f - k);
       w_ = auto_ct_dim_snapshot_ * k;
 
+      if (r_number_) r_number_->publish_state(r_);
+      if (g_number_) g_number_->publish_state(g_);
+      if (b_number_) b_number_->publish_state(b_);
+      if (w_number_) w_number_->publish_state(w_);
+      if (dim_number_) dim_number_->publish_state(dim_);
+
       auto_ct_internal_change_ = false;
 
 
