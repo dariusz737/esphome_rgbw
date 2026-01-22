@@ -110,7 +110,7 @@ void SuperRGBW::set_power(bool on) {
                                                   // RGBW
 void SuperRGBW::set_r(float v) {
 
-  void maybe_cancel_auto_ct_();
+  maybe_cancel_auto_ct_();
 
   r_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -122,7 +122,7 @@ void SuperRGBW::set_r(float v) {
 
 void SuperRGBW::set_g(float v) {
 
-  void maybe_cancel_auto_ct_();
+  maybe_cancel_auto_ct_();
 
   g_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -132,7 +132,7 @@ void SuperRGBW::set_g(float v) {
 
 void SuperRGBW::set_b(float v) {
 
-  void maybe_cancel_auto_ct_();
+  maybe_cancel_auto_ct_();
 
   b_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -142,7 +142,7 @@ void SuperRGBW::set_b(float v) {
 
 void SuperRGBW::set_w(float v) {
 
-  void maybe_cancel_auto_ct_();
+  maybe_cancel_auto_ct_();
 
   w_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -153,7 +153,7 @@ void SuperRGBW::set_w(float v) {
                                                   // DIM
 void SuperRGBW::set_dim(float v) {
 
-  void maybe_cancel_auto_ct_();
+  maybe_cancel_auto_ct_();
 
   apply_dim_(clampf(v, DIM_FLOOR, 1.0f));
   if (dim_number_) dim_number_->publish_state(dim_);
@@ -231,7 +231,7 @@ void SuperRGBW::loop_dim_manual_() {
                                                   // Sceny
 void SuperRGBW::set_scene(Scene scene) {
 
-  void maybe_cancel_auto_ct_();
+  maybe_cancel_auto_ct_();
 
   current_scene_ = scene;
   float d = dim_;
