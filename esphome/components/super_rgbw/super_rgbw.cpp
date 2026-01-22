@@ -132,17 +132,25 @@ void SuperRGBW::apply_dim_(float target_dim) {
   dim_sync_lock_ = false;
 }
 
-void SuperRGBW::dim_manual_toggle() {
-  if (!dim_manual_running_) {
-    dim_manual_running_ = true;
+void SuperRGBW::dim_toggle() {
+  if (!dim_running_) {
+    // NOWY START PO STOP
+    if (dim_cycle_finished_) {
+      dim_dir_up_ = !dim_dir_up_;   // ⬅️ ZMIEŃ KIERUNEK
+      dim_cycle_finished_ = false;
+    }
+    dim_running_ = true;
   } else {
-    dim_manual_dir_up_ = !dim_manual_dir_up_;
+    // ZMIANA KIERUNKU W TRAKCIE
+    dim_dir_up_ = !dim_dir_up_;
   }
 }
 
-void SuperRGBW::dim_manual_stop() {
-  dim_manual_running_ = false;
+void SuperRGBW::dim_stop() {
+  dim_running_ = false;
+  dim_cycle_finished_ = true;   // ⬅️ STOP kończy cykl
 }
+
 
 void SuperRGBW::loop_dim_manual_() {
   if (!dim_manual_running_) return;
