@@ -132,7 +132,7 @@ void SuperRGBW::apply_dim_(float target_dim) {
   dim_sync_lock_ = false;
 }
 
-void SuperRGBW::dim_toggle() {
+void SuperRGBW::dim_manual_toggle() {
   if (!dim_running_) {
     // NOWY START PO STOP
     if (dim_cycle_finished_) {
@@ -146,7 +146,7 @@ void SuperRGBW::dim_toggle() {
   }
 }
 
-void SuperRGBW::dim_stop() {
+void SuperRGBW::dim_manual_stop() {
   dim_running_ = false;
   dim_cycle_finished_ = true;   // ⬅️ STOP kończy cykl
 }
