@@ -72,6 +72,9 @@ class SuperRGBW : public esphome::Component {
   void update_dim_from_channels_();
   void apply_dim_(float target_dim);
   void loop_dim_manual_();
+                                                    // Przerwanie Auto CT przez uzytkownika
+  void maybe_cancel_auto_ct_();
+
 
                                                   // Aktualna scena
   Scene current_scene_{SCENE_NEUTRAL};
