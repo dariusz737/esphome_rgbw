@@ -1,20 +1,25 @@
 #include "super_rgbw.h"
 #include <algorithm>
 
+// Component implementation for RGBW controller
 namespace super_rgbw {
 
+// Minimum dim level to avoid complete blackout during dimming
 static constexpr float DIM_FLOOR = 0.05f;
 
+// Utility: clamp float to [lo, hi]
 static inline float clampf(float v, float lo, float hi) {
   if (v < lo) return lo;
   if (v > hi) return hi;
   return v;
 }
 
+// Component setup: render initial output state
 void SuperRGBW::setup() {
   render_();
 }
 
+// Section: Power control with fade transition
 // ───── POWER ─────
 void SuperRGBW::set_power(bool on) {
   fade_start_ = fade_level_;
@@ -29,6 +34,7 @@ void SuperRGBW::set_power(bool on) {
   }
 }
 
+// Section: RGBW channel setters
 // ───── RGBW ─────
 void SuperRGBW::set_r(float v) {
   r_ = clampf(v, 0.0f, 1.0f);
@@ -58,6 +64,7 @@ void SuperRGBW::set_w(float v) {
   if (power_) render_();
 }
 
+// Section: Master dim control (scales channels)
 // ───── DIM ─────
 void SuperRGBW::set_dim(float v) {
   float target = clampf(v, DIM_FLOOR, 1.0f);
@@ -66,6 +73,7 @@ void SuperRGBW::set_dim(float v) {
   if (power_) render_();
 }
 
+// Main loop: fade updates + manual dim handling
 void SuperRGBW::loop() {
 
   // ───── FADE ─────
@@ -93,11 +101,14 @@ void SuperRGBW::loop() {
 }
 
 
+// Configuration: set fade duration (ms)
 void SuperRGBW::set_fade_time(uint32_t fade_ms) {
   fade_time_ms_ = std::max<uint32_t>(fade_ms, 1);
 }
 
+// Section: Internal logic (dim sync and scaling)
 // ───── LOGIKA ─────
+// Sync dim value based on max channel
 void SuperRGBW::update_dim_from_channels_() {
   if (dim_sync_lock_) return;
 
@@ -107,6 +118,7 @@ void SuperRGBW::update_dim_from_channels_() {
   dim_sync_lock_ = false;
 }
 
+// Apply dim by scaling all channels proportionally
 void SuperRGBW::apply_dim_(float target_dim) {
   if (dim_sync_lock_) return;
   dim_sync_lock_ = true;
@@ -132,6 +144,7 @@ void SuperRGBW::apply_dim_(float target_dim) {
   dim_sync_lock_ = false;
 }
 
+// Manual dim: toggle run state and direction
 void SuperRGBW::dim_manual_toggle() {
   if (!dim_manual_running_) {
     dim_manual_running_ = true;
@@ -141,12 +154,14 @@ void SuperRGBW::dim_manual_toggle() {
   }
 }
 
+// Manual dim: stop immediately
 void SuperRGBW::dim_manual_stop() {
   dim_manual_running_ = false;
   dim_cycle_finished_ = true;   // ⬅️ STOP kończy cykl
 }
 
 
+// Manual dim loop: step brightness over time
 void SuperRGBW::loop_dim_manual_() {
   if (!dim_manual_running_) return;
 
@@ -173,7 +188,9 @@ void SuperRGBW::loop_dim_manual_() {
   if (power_) render_();
 }
 
+// Section: Render output to PWM channels
 // ───── RENDER ─────
+// Render current RGBW values with fade multiplier
 void SuperRGBW::render_() {
   if (!power_) {
     out_r_->set_level(0);
