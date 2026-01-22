@@ -25,6 +25,10 @@ CONF_AUTO_CT_SWITCH = "auto_ct_switch"
 
 CONF_TIME_ID = "time_id"
 
+CONF_AUTO_CT_START_MIN = "auto_ct_start_min"
+CONF_AUTO_CT_DURATION = "auto_ct_duration"
+
+
 
                                                   # Schemat konfiguracji komponentu
 CONFIG_SCHEMA = cv.Schema(
@@ -46,6 +50,9 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_AUTO_CT_SWITCH): cv.use_id(switch.Switch),
 
         cv.Required(CONF_TIME_ID): cv.use_id(time.RealTimeClock),
+        cv.Required(CONF_AUTO_CT_START_MIN): cv.use_id(number.Number),
+        cv.Required(CONF_AUTO_CT_DURATION): cv.use_id(number.Number),
+
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -80,4 +87,16 @@ async def to_code(config):
     cg.add(var.set_time(
         await cg.get_variable(config[CONF_TIME_ID])
     ))
+    cg.add(
+    var.set_auto_ct_start_min_number(
+        await cg.get_variable(config[CONF_AUTO_CT_START_MIN])
+    )
+    )
+
+    cg.add(
+        var.set_auto_ct_duration_number(
+            await cg.get_variable(config[CONF_AUTO_CT_DURATION])
+        )
+    )
+
 
