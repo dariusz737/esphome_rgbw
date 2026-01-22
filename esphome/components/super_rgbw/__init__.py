@@ -59,5 +59,6 @@ async def to_code(config):
 
     cg.add(var.set_fade_time(config[CONF_FADE_TIME].total_milliseconds))
     if CONF_AUTO_CT_SWITCH in config:
-    cg.add(var.set_auto_ct_switch(await cg.get_variable(config[CONF_AUTO_CT_SWITCH])))
-
+        cg.add(var.set_auto_ct_switch(
+            await cg.get_variable(config[CONF_AUTO_CT_SWITCH])
+        ))
