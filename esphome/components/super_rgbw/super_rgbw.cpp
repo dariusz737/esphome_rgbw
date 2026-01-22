@@ -109,13 +109,21 @@ void SuperRGBW::set_power(bool on) {
 
                                                   // RGBW
 void SuperRGBW::set_r(float v) {
+
+  void maybe_cancel_auto_ct_();
+
   r_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (r_number_) r_number_->publish_state(r_);
   if (power_) render_();
 }
 
+
+
 void SuperRGBW::set_g(float v) {
+
+  void maybe_cancel_auto_ct_();
+
   g_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (g_number_) g_number_->publish_state(g_);
@@ -123,6 +131,9 @@ void SuperRGBW::set_g(float v) {
 }
 
 void SuperRGBW::set_b(float v) {
+
+  void maybe_cancel_auto_ct_();
+
   b_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (b_number_) b_number_->publish_state(b_);
@@ -130,6 +141,9 @@ void SuperRGBW::set_b(float v) {
 }
 
 void SuperRGBW::set_w(float v) {
+
+  void maybe_cancel_auto_ct_();
+
   w_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (w_number_) w_number_->publish_state(w_);
@@ -138,6 +152,9 @@ void SuperRGBW::set_w(float v) {
 
                                                   // DIM
 void SuperRGBW::set_dim(float v) {
+
+  void maybe_cancel_auto_ct_();
+
   apply_dim_(clampf(v, DIM_FLOOR, 1.0f));
   if (dim_number_) dim_number_->publish_state(dim_);
   if (power_) render_();
@@ -213,6 +230,9 @@ void SuperRGBW::loop_dim_manual_() {
 
                                                   // Sceny
 void SuperRGBW::set_scene(Scene scene) {
+
+  void maybe_cancel_auto_ct_();
+
   current_scene_ = scene;
   float d = dim_;
 
@@ -238,6 +258,20 @@ void SuperRGBW::next_scene() {
 void SuperRGBW::scene_cold()    { set_scene(SCENE_COLD); }
 void SuperRGBW::scene_neutral() { set_scene(SCENE_NEUTRAL); }
 void SuperRGBW::scene_warm()    { set_scene(SCENE_WARM); }
+
+
+                                                  // Przerwanie Auto CT przez uzytkownika
+void SuperRGBW::maybe_cancel_auto_ct_() {
+  if (auto_ct_running_ && !auto_ct_internal_change_) {
+    auto_ct_running_ = false;
+    auto_ct_enabled_ = false;
+
+    if (auto_ct_switch_) {
+      auto_ct_switch_->publish_state(false);
+    }
+  }
+}
+
 
                                                   // Render
 void SuperRGBW::render_() {
