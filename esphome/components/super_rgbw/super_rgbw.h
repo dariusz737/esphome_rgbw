@@ -35,7 +35,6 @@ class SuperRGBW : public esphome::Component {
   void scene_warm();
   void scene_next();
 
-
   // Bind PWM outputs
   void set_out_r(esphome::output::FloatOutput *out) { out_r_ = out; }
   void set_out_g(esphome::output::FloatOutput *out) { out_g_ = out; }
@@ -55,12 +54,6 @@ class SuperRGBW : public esphome::Component {
   // Manual dim control
   void dim_manual_toggle();
   void dim_manual_stop();
-
-  // Scene control (applied at current DIM level)
-  void scene_cold();
-  void scene_neutral();
-  void scene_warm();
-  void next_scene();
 
  protected:
    // Current active lighting scene
