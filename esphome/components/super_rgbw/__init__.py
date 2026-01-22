@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 
-from esphome.components import output, number, switch
+from esphome.components import output, number, switch, time
 from esphome.const import CONF_ID
 
                                                   # Namespace i klasa C++ komponentu
@@ -23,6 +23,9 @@ CONF_DIM_NUMBER = "dim_number"
 CONF_FADE_TIME = "fade_time"
 CONF_AUTO_CT_SWITCH = "auto_ct_switch"
 
+CONF_TIME_ID = "time_id"
+
+
                                                   # Schemat konfiguracji komponentu
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -41,6 +44,8 @@ CONFIG_SCHEMA = cv.Schema(
 
         cv.Optional(CONF_FADE_TIME, default="1s"): cv.time_period,
         cv.Optional(CONF_AUTO_CT_SWITCH): cv.use_id(switch.Switch),
+
+        cv.Required(CONF_TIME_ID): cv.use_id(time.RealTimeClock),
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -72,3 +77,7 @@ async def to_code(config):
                 await cg.get_variable(config[CONF_AUTO_CT_SWITCH])
             )
         )
+    cg.add(var.set_time(
+        await cg.get_variable(config[CONF_TIME_ID])
+    ))
+

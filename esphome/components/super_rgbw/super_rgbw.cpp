@@ -91,7 +91,9 @@ void SuperRGBW::loop() {
   }
 
   loop_dim_manual_();
+  handle_auto_ct_time_();
 }
+
 
                                                   // Power
 void SuperRGBW::set_power(bool on) {
@@ -270,6 +272,29 @@ void SuperRGBW::maybe_cancel_auto_ct_() {
       auto_ct_switch_->publish_state(false);
     }
   }
+}
+
+void SuperRGBW::handle_auto_ct_time_() {
+  if (!auto_ct_enabled_) return;
+  if (!time_) return;
+  if (!auto_ct_start_min_) return;
+  if (!auto_ct_duration_) return;
+
+  auto now = time_->now();
+  if (!now.is_valid()) return;
+
+  int now_min = now.hour * 60 + now.minute;
+  int start_min = int(auto_ct_start_min_->state);
+
+  if (now_min != start_min) return;
+
+  if (now.day_of_year == last_auto_ct_day_) return;
+  last_auto_ct_day_ = now.day_of_year;
+
+  uint32_t duration_ms =
+      uint32_t(auto_ct_duration_->state) * 60000UL;
+
+  auto_ct_start(duration_ms);
 }
 
 

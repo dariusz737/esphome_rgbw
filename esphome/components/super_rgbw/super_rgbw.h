@@ -1,5 +1,6 @@
 #pragma once
 #include "esphome.h"
+#include "esphome/components/time/real_time_clock.h"
 
                                                   // Namespace komponentu
 namespace super_rgbw {
@@ -62,6 +63,15 @@ class SuperRGBW : public esphome::Component {
   void set_auto_ct_switch(esphome::switch_::Switch *s) {
     auto_ct_switch_ = s;
   }
+  void set_time(esphome::time::RealTimeClock *t) { time_ = t; }
+
+  void set_auto_ct_start_min_number(esphome::number::Number *n) {
+    auto_ct_start_min_ = n;
+  }
+  void set_auto_ct_duration_number(esphome::number::Number *n) {
+    auto_ct_duration_ = n;
+  }
+
 
  protected:
 
@@ -75,6 +85,8 @@ class SuperRGBW : public esphome::Component {
                                                     // Przerwanie Auto CT przez uzytkownika
   void maybe_cancel_auto_ct_();
 
+                                                  // Logika wewnetrzna Auto CT        
+  void handle_auto_ct_time_();
 
                                                   // Aktualna scena
   Scene current_scene_{SCENE_NEUTRAL};
@@ -94,6 +106,14 @@ class SuperRGBW : public esphome::Component {
 
                                                   // Switch Auto CT
   esphome::switch_::Switch *auto_ct_switch_{nullptr};
+
+  esphome::time::RealTimeClock *time_{nullptr};
+  esphome::number::Number *auto_ct_start_min_{nullptr};
+
+  esphome::number::Number *auto_ct_duration_{nullptr};
+
+  int last_auto_ct_day_{-1};
+
 
                                                   // Stan
   bool power_{false};
