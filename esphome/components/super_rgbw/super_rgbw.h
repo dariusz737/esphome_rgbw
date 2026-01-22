@@ -51,6 +51,11 @@ class SuperRGBW : public esphome::Component {
   void dim_manual_toggle();
   void dim_manual_stop();
 
+  // Auto CT
+  void set_auto_ct_enabled(bool v) { auto_ct_enabled_ = v; }
+  void auto_ct_start(uint32_t duration_ms);
+
+
  protected:
   void render_();
   void update_dim_from_channels_();
@@ -89,6 +94,20 @@ class SuperRGBW : public esphome::Component {
   bool dim_manual_running_{false};
   bool dim_manual_dir_up_{true};
   uint32_t dim_manual_last_ms_{0};
+
+  // ───── AUTO CT ─────
+  bool auto_ct_enabled_{false};
+  bool auto_ct_running_{false};
+
+  uint8_t auto_ct_step_{0};
+  uint32_t auto_ct_last_ms_{0};
+  uint32_t auto_ct_step_interval_ms_{0};
+
+  float auto_ct_r_start_{0};
+  float auto_ct_g_start_{0};
+  float auto_ct_b_start_{0};
+  float auto_ct_dim_snapshot_{0};
+
 };
 
 }  // namespace super_rgbw
