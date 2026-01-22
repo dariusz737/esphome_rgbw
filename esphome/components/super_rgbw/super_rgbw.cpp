@@ -194,7 +194,7 @@ void SuperRGBW::set_scene(Scene scene) {
 
   switch (scene) {
     case SCENE_COLD:
-      r_ = 0.0f; g_ = d; b_ = d; w_ = 0.0f;
+      r_ = d; g_ = d; b_ = d; w_ = 0.0f;
       break;
 
     case SCENE_NEUTRAL:
@@ -235,17 +235,17 @@ void SuperRGBW::next_scene() {
 }
 
 void SuperRGBW::scene_cold() {
-  current_scene_ = SCENE_COLD;
-  // ustaw RGB/W na podstawie dim_
+  set_scene(SCENE_COLD);
 }
 
 void SuperRGBW::scene_neutral() {
-  current_scene_ = SCENE_NEUTRAL;
+  set_scene(SCENE_NEUTRAL);
 }
 
 void SuperRGBW::scene_warm() {
-  current_scene_ = SCENE_WARM;
+  set_scene(SCENE_WARM);
 }
+
 
 // Section: Render output to PWM channels
 // ───── RENDER ─────
