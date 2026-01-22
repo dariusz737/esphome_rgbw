@@ -4,16 +4,16 @@
 // Component declarations for RGBW controller
 namespace super_rgbw {
 
+// Available lighting scenes
+enum Scene {
+  SCENE_COLD,     // RGB only (cold light)
+  SCENE_NEUTRAL,  // RGBW balanced
+  SCENE_WARM      // W only (warm light)
+};
+
 // Main component class
 class SuperRGBW : public esphome::Component {
  public:
-
-  // Available lighting scenes
-  enum Scene {
-    SCENE_COLD,     // RGB only (cold light)
-    SCENE_NEUTRAL,  // RGBW balanced
-    SCENE_WARM      // W only (warm light)
-  };
 
   // ESPHome lifecycle
   void setup() override;
@@ -59,7 +59,7 @@ class SuperRGBW : public esphome::Component {
  protected:
    // Current active lighting scene
   Scene current_scene_{SCENE_NEUTRAL};
-  
+
   // Internal logic
   void render_();
   void update_dim_from_channels_();
