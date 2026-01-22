@@ -135,9 +135,18 @@ void SuperRGBW::apply_dim_(float target_dim) {
 // ───── MANUAL DIM ─────
 
 void SuperRGBW::dim_manual_toggle() {
-  dim_manual_running_ = !dim_manual_running_;
-  dim_manual_dir_up_ = !dim_manual_dir_up_;
+  if (!dim_manual_running_) {
+    dim_manual_running_ = true;
+
+    // poniżej 50% → w górę, powyżej → w dół
+    dim_manual_dir_up_ = (dim_ < 0.5f);
+
+  } else {
+    // w trakcie – zmiana kierunku
+    dim_manual_dir_up_ = !dim_manual_dir_up_;
+  }
 }
+
 
 void SuperRGBW::dim_manual_stop() {
   dim_manual_running_ = false;
