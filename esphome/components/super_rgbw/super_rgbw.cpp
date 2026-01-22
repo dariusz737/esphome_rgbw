@@ -237,6 +237,22 @@ void SuperRGBW::next_scene() {
   }
 }
 
+void SuperRGBW::scene_cold() {
+  // TODO
+}
+
+void SuperRGBW::scene_neutral() {
+  // TODO
+}
+
+void SuperRGBW::scene_warm() {
+  // TODO
+}
+
+void SuperRGBW::next_scene() {
+  // TODO
+}
+
 // Section: Render output to PWM channels
 // ───── RENDER ─────
 // Render current RGBW values with fade multiplier

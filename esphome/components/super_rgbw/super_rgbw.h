@@ -56,6 +56,12 @@ class SuperRGBW : public esphome::Component {
   void dim_manual_toggle();
   void dim_manual_stop();
 
+  // Scene control (applied at current DIM level)
+  void scene_cold();
+  void scene_neutral();
+  void scene_warm();
+  void next_scene();
+
  protected:
    // Current active lighting scene
   Scene current_scene_{SCENE_NEUTRAL};
