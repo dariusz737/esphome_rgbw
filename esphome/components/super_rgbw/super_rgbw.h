@@ -69,6 +69,7 @@ class SuperRGBW : public esphome::Component {
 
   bool dim_manual_running_{false};
   bool dim_manual_dir_up_{true};
+  bool dim_cycle_finished_{true};
   uint32_t dim_manual_last_ms_{0};
 };
 
