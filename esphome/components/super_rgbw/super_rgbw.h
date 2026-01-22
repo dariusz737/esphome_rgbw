@@ -54,7 +54,9 @@ class SuperRGBW : public esphome::Component {
   // Auto CT
   void set_auto_ct_enabled(bool v) { auto_ct_enabled_ = v; }
   void auto_ct_start(uint32_t duration_ms);
-
+  void set_auto_ct_switch(esphome::switch_::Switch *s) {
+    auto_ct_switch_ = s;
+  }
 
  protected:
   void render_();
@@ -74,6 +76,8 @@ class SuperRGBW : public esphome::Component {
   esphome::number::Number *b_number_{nullptr};
   esphome::number::Number *w_number_{nullptr};
   esphome::number::Number *dim_number_{nullptr};
+
+  esphome::switch_::Switch *auto_ct_switch_{nullptr};
 
   bool power_{false};
   bool dim_sync_lock_{false};

@@ -2,6 +2,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import output, number
 from esphome.const import CONF_ID
+from esphome.components import switch
 
 super_rgbw_ns = cg.esphome_ns.namespace("super_rgbw")
 SuperRGBW = super_rgbw_ns.class_("SuperRGBW", cg.Component)
@@ -35,6 +36,8 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Required(CONF_DIM_NUMBER): cv.use_id(number.Number),
 
         cv.Optional(CONF_FADE_TIME, default="1s"): cv.time_period,
+        cv.Optional(CONF_AUTO_CT_SWITCH): cv.use_id(switch.Switch),
+
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -55,3 +58,6 @@ async def to_code(config):
     cg.add(var.set_dim_number(await cg.get_variable(config[CONF_DIM_NUMBER])))
 
     cg.add(var.set_fade_time(config[CONF_FADE_TIME].total_milliseconds))
+    if CONF_AUTO_CT_SWITCH in config:
+    cg.add(var.set_auto_ct_switch(await cg.get_variable(config[CONF_AUTO_CT_SWITCH])))
+
