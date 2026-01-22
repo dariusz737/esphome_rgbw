@@ -275,29 +275,64 @@ void SuperRGBW::maybe_cancel_auto_ct_() {
 }
 
 void SuperRGBW::handle_auto_ct_time_() {
-  if (!auto_ct_enabled_) return;
-  if (!time_) return;
-  if (!auto_ct_start_min_) return;
-  if (!auto_ct_duration_) return;
+  if (!auto_ct_enabled_) {
+    ESP_LOGD("super_rgbw", "Auto CT disabled");
+    return;
+  }
+  if (!time_) {
+    ESP_LOGD("super_rgbw", "No time component");
+    return;
+  }
+  if (!auto_ct_start_min_) {
+    ESP_LOGD("super_rgbw", "No start_min number");
+    return;
+  }
+  if (!auto_ct_duration_) {
+    ESP_LOGD("super_rgbw", "No duration number");
+    return;
+  }
 
   auto now = time_->now();
-  if (!now.is_valid()) return;
+  if (!now.is_valid()) {
+    ESP_LOGD("super_rgbw", "Time not valid yet");
+    return;
+  }
 
   int now_min = now.hour * 60 + now.minute;
   int start_min = int(auto_ct_start_min_->state);
 
-  if (now_min != start_min) return;
+  ESP_LOGD(
+    "super_rgbw",
+    "Time check: now=%02d:%02d (%d) start_min=%d last_day=%d today=%d",
+    now.hour,
+    now.minute,
+    now_min,
+    start_min,
+    last_auto_ct_day_,
+    now.day_of_year
+  );
 
-  if (now.day_of_year == last_auto_ct_day_) return;
+  if (now_min < start_min) return;
+  if (now_min > start_min + 1) return;
+
+  if (now.day_of_year == last_auto_ct_day_) {
+    ESP_LOGD("super_rgbw", "Already started today");
+    return;
+  }
+
   last_auto_ct_day_ = now.day_of_year;
 
   uint32_t duration_ms =
       uint32_t(auto_ct_duration_->state) * 60000UL;
 
+  ESP_LOGI(
+    "super_rgbw",
+    "AUTO CT START: duration=%u ms",
+    duration_ms
+  );
+
   auto_ct_start(duration_ms);
 }
-
-
                                                   // Render
 void SuperRGBW::render_() {
   if (!power_) {
