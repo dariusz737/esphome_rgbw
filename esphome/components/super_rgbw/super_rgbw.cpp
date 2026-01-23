@@ -50,39 +50,23 @@ void SuperRGBW::setup() {
 
   render_();
 }
-                                                  // Auto CT start
-void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
-  if (!auto_ct_enabled_) return;
-
-  auto_ct_running_ = true;
-  auto_ct_step_ = 0;
-  auto_ct_last_ms_ = millis();
-  auto_ct_step_interval_ms_ = duration_ms / 30;
-
-  auto_ct_r_start_ = r_;
-  auto_ct_g_start_ = g_;
-  auto_ct_b_start_ = b_;
-  auto_ct_w_start_ = w_;
-  auto_ct_dim_snapshot_ = dim_;
-}
-
                                                   // Loop
 
 void SuperRGBW::loop() {
 
   // ──────────────── EFEKTY (NAJWYŻSZY PRIORYTET) ────────────────
   if (effect_running_) {
-    if (effect_fireplace_switch_ && effect_fireplace_switch_->state()) {
+    if (effect_fireplace_switch_ && effect_fireplace_switch_->state) {
       loop_effect_fireplace_();
       return;
     }
-    if (effect_alarm_switch_ && effect_alarm_switch_->state()) {
+    if (effect_alarm_switch_ && effect_alarm_switch_->state) {
       loop_effect_alarm_();
       return;
     }
   }
 
-  // ──────────────── AUTO CT (JEŚLI NIE MA EFEKTU) ────────────────
+  // ──────────────── AUTO CT (tylko jeśli brak efektu) ────────────────
   if (auto_ct_running_) {
     uint32_t now = millis();
     if (now - auto_ct_last_ms_ >= auto_ct_step_interval_ms_) {
@@ -113,7 +97,7 @@ void SuperRGBW::loop() {
     }
   }
 
-  // ──────────────── FADE POWER ────────────────
+  // ──────────────── FADE ────────────────
   if (fade_level_ != fade_target_) {
     uint32_t now = millis();
     float t = float(now - fade_start_ms_) / float(fade_time_ms_);
@@ -132,14 +116,9 @@ void SuperRGBW::loop() {
     render_();
   }
 
-  // ──────────────── RĘCZNE DIMOWANIE ────────────────
   loop_dim_manual_();
-
-  // ──────────────── TIMER AUTO CT (START) ────────────────
   handle_auto_ct_time_();
 }
-
-
 
   if (fade_level_ != fade_target_) {
     uint32_t now = millis();
@@ -163,6 +142,21 @@ void SuperRGBW::loop() {
   handle_auto_ct_time_();
 }
 
+                                                  // Auto CT start
+void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
+  if (!auto_ct_enabled_) return;
+
+  auto_ct_running_ = true;
+  auto_ct_step_ = 0;
+  auto_ct_last_ms_ = millis();
+  auto_ct_step_interval_ms_ = duration_ms / 30;
+
+  auto_ct_r_start_ = r_;
+  auto_ct_g_start_ = g_;
+  auto_ct_b_start_ = b_;
+  auto_ct_w_start_ = w_;
+  auto_ct_dim_snapshot_ = dim_;
+}
 
                                                   // Power
 void SuperRGBW::set_power(bool on) {
