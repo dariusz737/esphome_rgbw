@@ -403,7 +403,7 @@ void SuperRGBW::loop_effect_fireplace_() {
   float d = dim_;
   if (d < 0.25f) d = 0.25f;
 
-  float flicker = random_float();
+  float flicker = esphome::random_float();
   flicker = flicker * flicker;
 
   float w = d * (0.6f + 0.4f * flicker);
