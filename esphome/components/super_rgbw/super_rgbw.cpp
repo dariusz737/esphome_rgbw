@@ -57,11 +57,11 @@ void SuperRGBW::loop() {
   // ──────────────── EFEKTY (NAJWYŻSZY PRIORYTET) ────────────────
   if (effect_running_) {
     if (effect_fireplace_switch_ && effect_fireplace_switch_->state) {
-      loop_effect_fireplace_();
+      loop_effect_fireplace();
       return;
     }
     if (effect_alarm_switch_ && effect_alarm_switch_->state) {
-      loop_effect_alarm_();
+      loop_effect_alarm();
       return;
     }
   }
