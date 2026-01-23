@@ -294,23 +294,33 @@ void SuperRGBW::set_auto_ct_enabled(bool v) {
 
 
 void SuperRGBW::handle_auto_ct_time_() {
-  
-int now_min = now.hour * 60 + now.minute;
-int start_min = int(auto_ct_start_min_->state);
 
-if (now_min != start_min) {
-  last_auto_ct_min_ = -1;   // reset, gdy minuta się zmieni
-  return;
+void SuperRGBW::handle_auto_ct_time_() {
+  if (!auto_ct_enabled_) return;
+  if (!time_) return;
+  if (!auto_ct_start_min_) return;
+  if (!auto_ct_duration_) return;
+
+  auto now = time_->now();
+  if (!now.is_valid()) return;
+
+  int now_min = now.hour * 60 + now.minute;
+  int start_min = int(auto_ct_start_min_->state);
+
+  if (now_min != start_min) {
+    last_auto_ct_min_ = -1;
+    return;
+  }
+
+  if (last_auto_ct_min_ == now_min) return;
+  last_auto_ct_min_ = now_min;
+
+  uint32_t duration_ms =
+      uint32_t(auto_ct_duration_->state) * 60000UL;
+
+  auto_ct_start(duration_ms);
 }
 
-if (last_auto_ct_min_ == now_min) return;
-
-last_auto_ct_min_ = now_min;
-
-uint32_t duration_ms =
-    uint32_t(auto_ct_duration_->state) * 60000UL;
-
-auto_ct_start(duration_ms);
 
 }
                                                   // Render
