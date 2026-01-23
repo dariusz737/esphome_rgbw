@@ -112,9 +112,6 @@ class SuperRGBW : public esphome::Component {
 
   esphome::number::Number *auto_ct_duration_{nullptr};
 
-  int last_auto_ct_day_{-1};
-
-
                                                   // Stan
   bool power_{false};
   bool dim_sync_lock_{false};
@@ -153,6 +150,9 @@ class SuperRGBW : public esphome::Component {
   float auto_ct_b_start_{0};
   float auto_ct_w_start_{0};
   float auto_ct_dim_snapshot_{0};
+
+  int last_auto_ct_min_{-1};
+
 };
 
 }  // namespace super_rgbw
