@@ -318,8 +318,6 @@ void SuperRGBW::handle_auto_ct_time_() {
   auto_ct_start(duration_ms);
 }
 
-
-}
                                                   // Render
 void SuperRGBW::render_() {
   if (!power_) {
