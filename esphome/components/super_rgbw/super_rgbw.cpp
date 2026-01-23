@@ -72,29 +72,39 @@ void SuperRGBW::loop() {
   if (auto_ct_running_) {
     uint32_t now = millis();
     if (now - auto_ct_last_ms_ >= auto_ct_step_interval_ms_) {
-      auto_ct_last_ms_ = now;
-      auto_ct_step_++;
+        auto_ct_last_ms_ = now;
+        auto_ct_step_++;
 
-      float k = float(auto_ct_step_) / 30.0f;
+        float k = float(auto_ct_step_) / 30.0f;
 
-      auto_ct_internal_change_ = true;
+        auto_ct_internal_change_ = true;
 
-      r_ = auto_ct_r_start_ * (1.0f - k);
-      g_ = auto_ct_g_start_ * (1.0f - k);
-      b_ = auto_ct_b_start_ * (1.0f - k);
-      w_ = auto_ct_w_start_ + (auto_ct_dim_snapshot_ - auto_ct_w_start_) * k;
+        r_ = auto_ct_r_start_ * (1.0f - k);
+        g_ = auto_ct_g_start_ * (1.0f - k);
+        b_ = auto_ct_b_start_ * (1.0f - k);
+        w_ = auto_ct_w_start_ + (auto_ct_dim_snapshot_ - auto_ct_w_start_) * k;
 
-      if (r_number_) r_number_->publish_state(r_);
-      if (g_number_) g_number_->publish_state(g_);
-      if (b_number_) b_number_->publish_state(b_);
-      if (w_number_) w_number_->publish_state(w_);
+        if (r_number_) r_number_->publish_state(r_);
+        if (g_number_) g_number_->publish_state(g_);
+        if (b_number_) b_number_->publish_state(b_);
+        if (w_number_) w_number_->publish_state(w_);
 
-      auto_ct_internal_change_ = false;
+        auto_ct_internal_change_ = false;
 
-      if (power_) render_();
+        if (power_) render_();
 
-      if (auto_ct_step_ >= 30) {
-        auto_ct_running_ = false;
+        if (auto_ct_step_ >= 30) {
+          auto_ct_running_ = false;
+        }
+          if (effect_running_) {
+        if (effect_fireplace_switch_ && effect_fireplace_switch_->state) {
+          loop_effect_fireplace_();
+          return;
+        }
+        if (effect_alarm_switch_ && effect_alarm_switch_->state) {
+          loop_effect_alarm_();
+          return;
+        }
       }
     }
   }
@@ -385,20 +395,47 @@ void SuperRGBW::stop_effect_common_() {
   if (power_) render_();
 }
 
-void SuperRGBW::start_effect_fireplace() {
-  if (!start_effect_common_(effect_fireplace_switch_)) return;
+void SuperRGBW::loop_effect_fireplace_() {
+  uint32_t now = millis();
+  if (now - effect_last_ms_ < 120) return;
+  effect_last_ms_ = now;
 
-  // tu NA RAZIE NIC WIĘCEJ
-  // (sekwencja będzie później)
+  float d = dim_;
+  if (d < 0.25f) d = 0.25f;
+
+  float flicker = random_float();
+  flicker = flicker * flicker;
+
+  float w = d * (0.6f + 0.4f * flicker);
+  float r = w * (0.35f + 0.15f * flicker);
+
+  r_ = clampf(r, 0.0f, 1.0f);
+  g_ = 0.0f;
+  b_ = 0.0f;
+  w_ = clampf(w, 0.0f, 1.0f);
+
+  if (power_) render_();
 }
 
-void SuperRGBW::start_effect_alarm() {
-  if (!start_effect_common_(effect_alarm_switch_)) return;
-
-  // jw.
 }
 
+void SuperRGBW::loop_effect_alarm_() {
+  uint32_t now = millis();
+  if (now - effect_last_ms_ < 120) return;
+  effect_last_ms_ = now;
 
+  static uint8_t step = 0;
+  step = (step + 1) % 4;
+
+  switch (step) {
+    case 0: r_=1; g_=0; b_=0; w_=0; break;
+    case 1: r_=1; g_=1; b_=1; w_=0; break;
+    case 2: r_=0; g_=0; b_=1; w_=0; break;
+    case 3: r_=1; g_=1; b_=1; w_=0; break;
+  }
+
+  if (power_) render_();
+}
 
                                                   // Render
 void SuperRGBW::render_() {
