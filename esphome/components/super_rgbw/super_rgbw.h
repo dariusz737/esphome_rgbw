@@ -184,6 +184,14 @@ class SuperRGBW : public esphome::Component {
   // Switche efektów (ustawiane z codegen)
   esphome::switch_::Switch *effect_fireplace_switch_{nullptr};
   esphome::switch_::Switch *effect_alarm_switch_{nullptr};
+  
+  // --- Loop efektów ---
+  void loop_effect_fireplace_();
+  void loop_effect_alarm_();
+
+  uint32_t effect_last_ms_{0};
+  uint8_t effect_step_{0};
+
 
 };
 
