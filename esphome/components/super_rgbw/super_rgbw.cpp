@@ -292,9 +292,6 @@ void SuperRGBW::set_auto_ct_enabled(bool v) {
   }
 }
 
-
-void SuperRGBW::handle_auto_ct_time_() {
-
 void SuperRGBW::handle_auto_ct_time_() {
   if (!auto_ct_enabled_) return;
   if (!time_) return;
