@@ -72,6 +72,19 @@ class SuperRGBW : public esphome::Component {
     auto_ct_duration_ = n;
   }
 
+  // Efekty
+  void start_effect_fireplace();
+  void start_effect_alarm();
+  void stop_effect();
+  void set_effect_fireplace_switch(esphome::switch_::Switch *s) {
+    effect_fireplace_switch_ = s;
+  }
+
+  void set_effect_alarm_switch(esphome::switch_::Switch *s) {
+    effect_alarm_switch_ = s;
+  }
+
+
 
  protected:
 
@@ -152,6 +165,25 @@ class SuperRGBW : public esphome::Component {
   float auto_ct_dim_snapshot_{0};
 
   int last_auto_ct_min_{-1};
+
+                                                  // Efekty   
+                                                
+  // Wspólna logika efektów
+  bool start_effect_common_(esphome::switch_::Switch *requesting_switch);
+  void stop_effect_common_();
+
+  // Stan efektu
+  bool effect_running_{false};
+
+  // Zapamiętany stan RGBW
+  float saved_r_{0};
+  float saved_g_{0};
+  float saved_b_{0};
+  float saved_w_{0};
+
+  // Switche efektów (ustawiane z codegen)
+  esphome::switch_::Switch *effect_fireplace_switch_{nullptr};
+  esphome::switch_::Switch *effect_alarm_switch_{nullptr};
 
 };
 

@@ -29,6 +29,25 @@ void SuperRGBW::setup() {
   if (w_number_) w_ = w_number_->state;
   if (dim_number_) dim_ = dim_number_->state;
 
+
+  if (effect_fireplace_switch_) {
+    effect_fireplace_switch_->add_on_state_callback(
+      [this](bool state) {
+        if (state) start_effect_fireplace();
+        else stop_effect();
+      }
+    );
+  }
+
+  if (effect_alarm_switch_) {
+    effect_alarm_switch_->add_on_state_callback(
+      [this](bool state) {
+        if (state) start_effect_alarm();
+        else stop_effect();
+      }
+    );
+  }
+
   render_();
 }
                                                   // Auto CT start
@@ -287,9 +306,9 @@ void SuperRGBW::maybe_cancel_auto_ct_() {
 void SuperRGBW::set_auto_ct_enabled(bool v) {
   if (!v) {
     maybe_cancel_auto_ct_();
-  } else {
-    auto_ct_enabled_ = true;
+    return;
   }
+  auto_ct_enabled_ = true;
 }
 
 void SuperRGBW::handle_auto_ct_time_() {
@@ -317,6 +336,69 @@ void SuperRGBW::handle_auto_ct_time_() {
 
   auto_ct_start(duration_ms);
 }
+                                                  // Efekty
+
+bool SuperRGBW::start_effect_common_(esphome::switch_::Switch *requesting_switch) {
+  if (effect_running_) {
+    if (requesting_switch)
+      requesting_switch->publish_state(false);
+    return false;
+  }
+
+  // przerwij Auto CT jak przy RGBW
+  maybe_cancel_auto_ct_();
+
+  // zapamiętaj aktualny stan
+  saved_r_ = r_;
+  saved_g_ = g_;
+  saved_b_ = b_;
+  saved_w_ = w_;
+
+  effect_running_ = true;
+  return true;
+}
+
+void SuperRGBW::stop_effect() {
+  stop_effect_common_();
+
+  if (effect_fireplace_switch_)
+    effect_fireplace_switch_->publish_state(false);
+  if (effect_alarm_switch_)
+    effect_alarm_switch_->publish_state(false);
+}
+
+void SuperRGBW::stop_effect_common_() {
+  if (!effect_running_) return;
+
+  effect_running_ = false;
+
+  r_ = saved_r_;
+  g_ = saved_g_;
+  b_ = saved_b_;
+  w_ = saved_w_;
+
+  if (r_number_) r_number_->publish_state(r_);
+  if (g_number_) g_number_->publish_state(g_);
+  if (b_number_) b_number_->publish_state(b_);
+  if (w_number_) w_number_->publish_state(w_);
+
+  if (power_) render_();
+}
+
+void SuperRGBW::start_effect_fireplace() {
+  if (!start_effect_common_(effect_fireplace_switch_)) return;
+
+  // tu NA RAZIE NIC WIĘCEJ
+  // (sekwencja będzie później)
+}
+
+void SuperRGBW::start_effect_alarm() {
+  if (!start_effect_common_(effect_alarm_switch_)) return;
+
+  // jw.
+}
+
+
 
                                                   // Render
 void SuperRGBW::render_() {
