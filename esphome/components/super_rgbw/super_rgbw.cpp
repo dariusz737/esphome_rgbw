@@ -119,29 +119,6 @@ void SuperRGBW::loop() {
   loop_dim_manual_();
   handle_auto_ct_time_();
 }
-
-  if (fade_level_ != fade_target_) {
-    uint32_t now = millis();
-    float t = float(now - fade_start_ms_) / float(fade_time_ms_);
-
-    if (t >= 1.0f) {
-      fade_level_ = fade_target_;
-      if (fading_off_) {
-        power_ = false;
-        fading_off_ = false;
-      }
-    } else {
-      fade_level_ = fade_start_ + (fade_target_ - fade_start_) * t;
-    }
-
-    fade_level_ = clampf(fade_level_, 0.0f, 1.0f);
-    render_();
-  }
-
-  loop_dim_manual_();
-  handle_auto_ct_time_();
-}
-
                                                   // Auto CT start
 void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
   if (!auto_ct_enabled_) return;
