@@ -406,7 +406,7 @@ void SuperRGBW::stop_effect_common_() {
   if (power_) render_();
 }
 
-void SuperRGBW::loop_effect_fireplace() {
+void SuperRGBW::loop_effect_fireplace_() {
   uint32_t now = millis();
   if (now - effect_last_ms_ < 120) return;
   effect_last_ms_ = now;
@@ -428,7 +428,7 @@ void SuperRGBW::loop_effect_fireplace() {
   if (power_) render_();
 }
 
-void SuperRGBW::loop_effect_alarm() {
+void SuperRGBW::loop_effect_alarm_() {
   uint32_t now = millis();
   if (now - effect_last_ms_ < 120) return;
   effect_last_ms_ = now;
