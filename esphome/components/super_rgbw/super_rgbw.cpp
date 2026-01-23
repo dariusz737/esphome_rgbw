@@ -67,47 +67,79 @@ void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
 }
 
                                                   // Loop
+
 void SuperRGBW::loop() {
 
+  // ──────────────── EFEKTY (NAJWYŻSZY PRIORYTET) ────────────────
+  if (effect_running_) {
+    if (effect_fireplace_switch_ && effect_fireplace_switch_->state()) {
+      loop_effect_fireplace_();
+      return;
+    }
+    if (effect_alarm_switch_ && effect_alarm_switch_->state()) {
+      loop_effect_alarm_();
+      return;
+    }
+  }
+
+  // ──────────────── AUTO CT (JEŚLI NIE MA EFEKTU) ────────────────
   if (auto_ct_running_) {
     uint32_t now = millis();
     if (now - auto_ct_last_ms_ >= auto_ct_step_interval_ms_) {
-        auto_ct_last_ms_ = now;
-        auto_ct_step_++;
+      auto_ct_last_ms_ = now;
+      auto_ct_step_++;
 
-        float k = float(auto_ct_step_) / 30.0f;
+      float k = float(auto_ct_step_) / 30.0f;
 
-        auto_ct_internal_change_ = true;
+      auto_ct_internal_change_ = true;
 
-        r_ = auto_ct_r_start_ * (1.0f - k);
-        g_ = auto_ct_g_start_ * (1.0f - k);
-        b_ = auto_ct_b_start_ * (1.0f - k);
-        w_ = auto_ct_w_start_ + (auto_ct_dim_snapshot_ - auto_ct_w_start_) * k;
+      r_ = auto_ct_r_start_ * (1.0f - k);
+      g_ = auto_ct_g_start_ * (1.0f - k);
+      b_ = auto_ct_b_start_ * (1.0f - k);
+      w_ = auto_ct_w_start_ + (auto_ct_dim_snapshot_ - auto_ct_w_start_) * k;
 
-        if (r_number_) r_number_->publish_state(r_);
-        if (g_number_) g_number_->publish_state(g_);
-        if (b_number_) b_number_->publish_state(b_);
-        if (w_number_) w_number_->publish_state(w_);
+      if (r_number_) r_number_->publish_state(r_);
+      if (g_number_) g_number_->publish_state(g_);
+      if (b_number_) b_number_->publish_state(b_);
+      if (w_number_) w_number_->publish_state(w_);
 
-        auto_ct_internal_change_ = false;
+      auto_ct_internal_change_ = false;
 
-        if (power_) render_();
+      if (power_) render_();
 
-        if (auto_ct_step_ >= 30) {
-          auto_ct_running_ = false;
-        }
-          if (effect_running_) {
-        if (effect_fireplace_switch_ && effect_fireplace_switch_->state) {
-          loop_effect_fireplace_();
-          return;
-        }
-        if (effect_alarm_switch_ && effect_alarm_switch_->state) {
-          loop_effect_alarm_();
-          return;
-        }
+      if (auto_ct_step_ >= 30) {
+        auto_ct_running_ = false;
       }
     }
   }
+
+  // ──────────────── FADE POWER ────────────────
+  if (fade_level_ != fade_target_) {
+    uint32_t now = millis();
+    float t = float(now - fade_start_ms_) / float(fade_time_ms_);
+
+    if (t >= 1.0f) {
+      fade_level_ = fade_target_;
+      if (fading_off_) {
+        power_ = false;
+        fading_off_ = false;
+      }
+    } else {
+      fade_level_ = fade_start_ + (fade_target_ - fade_start_) * t;
+    }
+
+    fade_level_ = clampf(fade_level_, 0.0f, 1.0f);
+    render_();
+  }
+
+  // ──────────────── RĘCZNE DIMOWANIE ────────────────
+  loop_dim_manual_();
+
+  // ──────────────── TIMER AUTO CT (START) ────────────────
+  handle_auto_ct_time_();
+}
+
+
 
   if (fade_level_ != fade_target_) {
     uint32_t now = millis();
@@ -346,6 +378,7 @@ void SuperRGBW::handle_auto_ct_time_() {
 
   auto_ct_start(duration_ms);
 }
+
                                                   // Efekty
 
 bool SuperRGBW::start_effect_common_(esphome::switch_::Switch *requesting_switch) {
@@ -355,8 +388,15 @@ bool SuperRGBW::start_effect_common_(esphome::switch_::Switch *requesting_switch
     return false;
   }
 
-  // przerwij Auto CT jak przy RGBW
-  maybe_cancel_auto_ct_();
+  // przerwij Auto CT TYLKO jeśli AKTYWNIE BIEGNIE
+  if (auto_ct_running_) {
+    auto_ct_running_ = false;
+    auto_ct_enabled_ = false;
+
+    if (auto_ct_switch_) {
+      auto_ct_switch_->publish_state(false);
+    }
+  }
 
   // zapamiętaj aktualny stan
   saved_r_ = r_;
