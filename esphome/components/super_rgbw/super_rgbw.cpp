@@ -1,8 +1,11 @@
 #include "super_rgbw.h"
 #include <algorithm>
+#include "esphome/core/log.h"
 
                                                   // Pomocnicze
 namespace super_rgbw {
+
+static const char *TAG = "super_rgbw";
 
 static constexpr float DIM_FLOOR = 0.05f;
 
@@ -30,23 +33,23 @@ void SuperRGBW::setup() {
   if (dim_number_) dim_ = dim_number_->state;
 
   if (effect_fireplace_switch_) {
+    ESP_LOGI(TAG, "Fireplace switch connected");
     effect_fireplace_switch_->add_on_state_callback(
       [this](bool state) {
-        if (state)
-          start_effect_fireplace();
-        else
-          stop_effect();
+        ESP_LOGI(TAG, "Fireplace switch changed: %s", state ? "ON" : "OFF");
+        if (state) start_effect_fireplace();
+        else stop_effect();
       }
     );
   }
 
   if (effect_alarm_switch_) {
+    ESP_LOGI(TAG, "Alarm switch connected");
     effect_alarm_switch_->add_on_state_callback(
       [this](bool state) {
-        if (state)
-          start_effect_alarm();
-        else
-          stop_effect();
+        ESP_LOGI(TAG, "Alarm switch changed: %s", state ? "ON" : "OFF");
+        if (state) start_effect_alarm();
+        else stop_effect();
       }
     );
   }
@@ -57,16 +60,33 @@ void SuperRGBW::setup() {
 
 void SuperRGBW::loop() {
 
-    if (effect_running_) {
-      if (effect_fireplace_switch_ && effect_fireplace_switch_->state) {
-        loop_effect_fireplace_();
-        return;
-      }
-      if (effect_alarm_switch_ && effect_alarm_switch_->state) {
-        loop_effect_alarm_();
-        return;
-      }
+    // if (effect_running_) {
+    //   if (effect_fireplace_switch_ && effect_fireplace_switch_->state) {
+    //     loop_effect_fireplace_();
+    //     return;
+    //   }
+    //   if (effect_alarm_switch_ && effect_alarm_switch_->state) {
+    //     loop_effect_alarm_();
+    //     return;
+    //   }
+    // }
+
+
+  if (effect_running_) {
+    ESP_LOGV(TAG, "Effect running...");
+
+    if (effect_fireplace_switch_ && effect_fireplace_switch_->state()) {
+      ESP_LOGV(TAG, "Running FIREPLACE effect loop");
+      loop_effect_fireplace_();
+      return;
     }
+
+    if (effect_alarm_switch_ && effect_alarm_switch_->state()) {
+      ESP_LOGV(TAG, "Running ALARM effect loop");
+      loop_effect_alarm_();
+      return;
+    }
+  }
 
   // ──────────────── AUTO CT (tylko jeśli brak efektu) ────────────────
   if (auto_ct_running_) {
@@ -365,40 +385,83 @@ void SuperRGBW::start_effect_alarm() {
 }
 
 
+// void SuperRGBW::start_effect_common_(esphome::switch_::Switch *requesting_switch) {
+
+//   if (effect_running_) {
+//     // inny efekt działa → cofamy kliknięty switch
+//     if (requesting_switch)
+//       requesting_switch->publish_state(false);
+//     return;
+//   }
+
+//   // przerwij Auto CT tylko jeśli AKTYWNIE BIEGNIE
+//   if (auto_ct_running_) {
+//     auto_ct_running_ = false;
+//     auto_ct_enabled_ = false;
+//     if (auto_ct_switch_)
+//       auto_ct_switch_->publish_state(false);
+//   }
+
+//   // zapamiętaj stan
+//   saved_r_ = r_;
+//   saved_g_ = g_;
+//   saved_b_ = b_;
+//   saved_w_ = w_;
+
+//   effect_running_ = true;
+// }
+
 void SuperRGBW::start_effect_common_(esphome::switch_::Switch *requesting_switch) {
+  ESP_LOGI(TAG, "start_effect_common_() called");
 
   if (effect_running_) {
-    // inny efekt działa → cofamy kliknięty switch
+    ESP_LOGW(TAG, "Effect already running -> blocking new effect");
     if (requesting_switch)
       requesting_switch->publish_state(false);
     return;
   }
 
-  // przerwij Auto CT tylko jeśli AKTYWNIE BIEGNIE
   if (auto_ct_running_) {
+    ESP_LOGI(TAG, "Auto CT was running -> stopping it");
     auto_ct_running_ = false;
     auto_ct_enabled_ = false;
     if (auto_ct_switch_)
       auto_ct_switch_->publish_state(false);
   }
 
-  // zapamiętaj stan
   saved_r_ = r_;
   saved_g_ = g_;
   saved_b_ = b_;
   saved_w_ = w_;
 
   effect_running_ = true;
+  ESP_LOGI(TAG, "Effect STARTED");
 }
 
 void SuperRGBW::stop_effect() {
-  stop_effect_common_();
+  ESP_LOGI(TAG, "stop_effect() called");
+
+  if (!effect_running_) {
+    ESP_LOGW(TAG, "stop_effect() but no effect running");
+    return;
+  }
+
+  effect_running_ = false;
+  ESP_LOGI(TAG, "Effect STOPPED");
+
+  r_ = saved_r_;
+  g_ = saved_g_;
+  b_ = saved_b_;
+  w_ = saved_w_;
+
+  if (power_) render_();
 
   if (effect_fireplace_switch_)
     effect_fireplace_switch_->publish_state(false);
   if (effect_alarm_switch_)
     effect_alarm_switch_->publish_state(false);
 }
+
 
 void SuperRGBW::stop_effect_common_() {
   if (!effect_running_) return;
@@ -431,7 +494,7 @@ void SuperRGBW::loop_effect_fireplace_() {
 
   float w = d * (0.6f + 0.4f * flicker);
   float r = w * (0.35f + 0.15f * flicker);
-
+  ESP_LOGD(TAG, "Fireplace tick");
   r_ = clampf(r, 0.0f, 1.0f);
   g_ = 0.0f;
   b_ = 0.0f;
@@ -447,7 +510,7 @@ void SuperRGBW::loop_effect_alarm_() {
 
   static uint8_t step = 0;
   step = (step + 1) % 4;
-
+  ESP_LOGD(TAG, "alarm tick");
   switch (step) {
     case 0: r_=1; g_=0; b_=0; w_=0; break;
     case 1: r_=1; g_=1; b_=1; w_=0; break;
