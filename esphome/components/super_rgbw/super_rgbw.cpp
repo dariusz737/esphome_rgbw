@@ -57,11 +57,11 @@ void SuperRGBW::loop() {
   // ──────────────── EFEKTY (NAJWYŻSZY PRIORYTET) ────────────────
   if (effect_running_) {
     if (effect_fireplace_switch_ && effect_fireplace_switch_->state) {
-      loop_effect_fireplace();
+      loop_effect_fireplace_();
       return;
     }
     if (effect_alarm_switch_ && effect_alarm_switch_->state) {
-      loop_effect_alarm();
+      loop_effect_alarm_();
       return;
     }
   }
@@ -352,6 +352,15 @@ void SuperRGBW::handle_auto_ct_time_() {
 
                                                   // Efekty
 
+void SuperRGBW::start_effect_fireplace() {
+  start_effect_common_(effect_fireplace_switch_);
+}
+
+void SuperRGBW::start_effect_alarm() {
+  start_effect_common_(effect_alarm_switch_);
+}
+
+
 bool SuperRGBW::start_effect_common_(esphome::switch_::Switch *requesting_switch) {
   if (effect_running_) {
     if (requesting_switch)
@@ -406,7 +415,7 @@ void SuperRGBW::stop_effect_common_() {
   if (power_) render_();
 }
 
-void SuperRGBW::loop_effect_fireplace() {
+void SuperRGBW::loop_effect_fireplace_() {
   uint32_t now = millis();
   if (now - effect_last_ms_ < 120) return;
   effect_last_ms_ = now;
@@ -428,7 +437,7 @@ void SuperRGBW::loop_effect_fireplace() {
   if (power_) render_();
 }
 
-void SuperRGBW::loop_effect_alarm() {
+void SuperRGBW::loop_effect_alarm_() {
   uint32_t now = millis();
   if (now - effect_last_ms_ < 120) return;
   effect_last_ms_ = now;
