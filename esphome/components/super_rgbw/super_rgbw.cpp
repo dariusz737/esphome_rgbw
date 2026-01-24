@@ -56,11 +56,11 @@ void SuperRGBW::loop() {
 
     if (effect_running_) {
       if (effect_fireplace_switch_ && effect_fireplace_switch_->state) {
-        loop_effect_fireplace();
+        loop_effect_fireplace_();
         return;
       }
       if (effect_alarm_switch_ && effect_alarm_switch_->state) {
-        loop_effect_alarm();
+        loop_effect_alarm_();
         return;
       }
     }
