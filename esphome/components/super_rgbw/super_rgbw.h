@@ -191,6 +191,14 @@ class SuperRGBW : public esphome::Component {
 
   uint32_t effect_last_ms_{0};
   uint8_t effect_step_{0};
+  
+  enum EffectType {
+    EFFECT_NONE,
+    EFFECT_FIREPLACE,
+    EFFECT_ALARM
+  };
+
+  EffectType active_effect_{EFFECT_NONE};
 
 
 };
