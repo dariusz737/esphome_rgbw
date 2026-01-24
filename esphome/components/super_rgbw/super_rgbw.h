@@ -169,11 +169,11 @@ class SuperRGBW : public esphome::Component {
                                                   // Efekty   
                                                 
   // Wspólna logika efektów
-  void start_effect_common_(esphome::switch_::Switch *requesting_switch);
+  void start_effect_common_(
+    EffectType requested,
+    esphome::switch_::Switch *requesting_switch
+  );
   void stop_effect_common_();
-
-  // Stan efektu
-  bool effect_running_{false};
 
   // Zapamiętany stan RGBW
   float saved_r_{0};
@@ -198,8 +198,7 @@ class SuperRGBW : public esphome::Component {
     EFFECT_ALARM
   };
 
-  EffectType active_effect_{EFFECT_NONE};
-
+  EffectType current_effect_{EFFECT_NONE};
 
 };
 

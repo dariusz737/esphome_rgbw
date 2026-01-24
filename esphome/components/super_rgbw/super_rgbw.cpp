@@ -62,10 +62,10 @@ void SuperRGBW::setup() {
 
 void SuperRGBW::loop() {
 
-  if (active_effect_ != EFFECT_NONE) {
-    ESP_LOGI(TAG, "Effect running: %d", active_effect_);
+  if (current_effect_ != EFFECT_NONE) {
+    ESP_LOGI(TAG, "Effect running: %d", current_effect_);
 
-    switch (active_effect_) {
+    switch (current_effect_) {
       case EFFECT_FIREPLACE:
         loop_effect_fireplace_();
         return;
@@ -78,6 +78,7 @@ void SuperRGBW::loop() {
         break;
     }
   }
+
 
   // ──────────────── AUTO CT (tylko jeśli brak efektu) ────────────────
   if (auto_ct_running_) {
@@ -367,56 +368,65 @@ void SuperRGBW::handle_auto_ct_time_() {
 
 void SuperRGBW::start_effect_fireplace() {
   ESP_LOGI(TAG, "Request to start FIREPLACE effect");
-  start_effect_common_(effect_fireplace_switch_);
+  start_effect_common_(EFFECT_FIREPLACE, effect_fireplace_switch_);
 }
 
 void SuperRGBW::start_effect_alarm() {
   ESP_LOGI(TAG, "Request to start ALARM effect");
-  start_effect_common_(effect_alarm_switch_);
+  start_effect_common_(EFFECT_ALARM, effect_alarm_switch_);
 }
 
-void SuperRGBW::start_effect_common_(esphome::switch_::Switch *requesting_switch) {
-  ESP_LOGI(TAG, "start_effect_common_ called");
+void SuperRGBW::start_effect_common_(
+    EffectType requested,
+    esphome::switch_::Switch *requesting_switch
+) {
+  ESP_LOGI(TAG, "start_effect_common_: requested=%d current=%d",
+           requested, current_effect_);
 
-  // ❌ Inny efekt już działa → cofamy kliknięty switch
-  if (effect_running_) {
-    ESP_LOGI(TAG, "Another effect already running → rejecting");
-    if (requesting_switch) {
+  // 1️⃣ Jeśli jakiś efekt JUŻ działa
+  if (current_effect_ != EFFECT_NONE) {
+    ESP_LOGI(TAG, "Another effect already running -> rejecting");
+
+    // cofamy switch, który próbował się włączyć
+    if (requesting_switch)
       requesting_switch->publish_state(false);
-    }
+
     return;
   }
 
-  // ✅ Przerwij Auto CT TYLKO jeśli AKTYWNIE BIEGNIE
+  // 2️⃣ Zatrzymaj Auto CT TYLKO jeśli faktycznie biegnie
   if (auto_ct_running_) {
     ESP_LOGI(TAG, "Stopping Auto CT due to effect start");
     auto_ct_running_ = false;
     auto_ct_enabled_ = false;
-
-    if (auto_ct_switch_) {
+    if (auto_ct_switch_)
       auto_ct_switch_->publish_state(false);
-    }
   }
 
-  // 💾 Zapamiętaj aktualny stan RGBW
+  // 3️⃣ Zapamiętaj aktualny stan
   saved_r_ = r_;
   saved_g_ = g_;
   saved_b_ = b_;
   saved_w_ = w_;
 
-  effect_running_ = true;
+  // 4️⃣ Ustaw aktywny efekt
+  current_effect_ = requested;
 
-  ESP_LOGI(TAG, "Effect STARTED");
+  ESP_LOGI(TAG, "Effect STARTED: %d", current_effect_);
 }
 
+
 void SuperRGBW::stop_effect() {
-  if (active_effect_ == EFFECT_NONE)
+  if (current_effect_ == EFFECT_NONE) {
+    ESP_LOGI(TAG, "stop_effect(): no effect running");
     return;
+  }
 
-  ESP_LOGI(TAG, "Stopping effect %d", active_effect_);
+  ESP_LOGI(TAG, "Stopping effect %d", current_effect_);
 
-  active_effect_ = EFFECT_NONE;
+  current_effect_ = EFFECT_NONE;
 
+  // przywróć zapisany stan
   r_ = saved_r_;
   g_ = saved_g_;
   b_ = saved_b_;
@@ -427,12 +437,14 @@ void SuperRGBW::stop_effect() {
   if (b_number_) b_number_->publish_state(b_);
   if (w_number_) w_number_->publish_state(w_);
 
+  // wyłącz oba switche (bez zgadywania który)
   if (effect_fireplace_switch_)
     effect_fireplace_switch_->publish_state(false);
   if (effect_alarm_switch_)
     effect_alarm_switch_->publish_state(false);
 
-  if (power_) render_();
+  if (power_)
+    render_();
 }
 
 void SuperRGBW::loop_effect_fireplace_() {
