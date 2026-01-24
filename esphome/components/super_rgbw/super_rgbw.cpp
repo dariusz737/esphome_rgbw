@@ -407,33 +407,24 @@ void SuperRGBW::start_effect_alarm() {
   ESP_LOGI(TAG, "Alarm effect STARTED");
 }
 
+void SuperRGBW::start_effect_common_() {
+  ESP_LOGI(TAG, "Effect common START");
 
+  // Auto CT tylko jeśli AKTYWNIE BIEGNIE
+  if (auto_ct_running_) {
+    ESP_LOGI(TAG, "Stopping Auto CT due to effect start");
+    auto_ct_running_ = false;
+    auto_ct_enabled_ = false;
+    if (auto_ct_switch_)
+      auto_ct_switch_->publish_state(false);
+  }
 
-// void SuperRGBW::start_effect_common_(esphome::switch_::Switch *requesting_switch) {
-
-//   if (effect_running_) {
-//     // inny efekt działa → cofamy kliknięty switch
-//     if (requesting_switch)
-//       requesting_switch->publish_state(false);
-//     return;
-//   }
-
-//   // przerwij Auto CT tylko jeśli AKTYWNIE BIEGNIE
-//   if (auto_ct_running_) {
-//     auto_ct_running_ = false;
-//     auto_ct_enabled_ = false;
-//     if (auto_ct_switch_)
-//       auto_ct_switch_->publish_state(false);
-//   }
-
-//   // zapamiętaj stan
-//   saved_r_ = r_;
-//   saved_g_ = g_;
-//   saved_b_ = b_;
-//   saved_w_ = w_;
-
-//   effect_running_ = true;
-// }
+  // zapamiętaj stan
+  saved_r_ = r_;
+  saved_g_ = g_;
+  saved_b_ = b_;
+  saved_w_ = w_;
+}
 
 void SuperRGBW::stop_effect() {
   if (active_effect_ == EFFECT_NONE)
@@ -457,49 +448,6 @@ void SuperRGBW::stop_effect() {
     effect_fireplace_switch_->publish_state(false);
   if (effect_alarm_switch_)
     effect_alarm_switch_->publish_state(false);
-
-  if (power_) render_();
-}
-
-void SuperRGBW::stop_effect() {
-  ESP_LOGI(TAG, "stop_effect() called");
-
-  if (!effect_running_) {
-    ESP_LOGI(TAG, "stop_effect() but no effect running");
-    return;
-  }
-
-  effect_running_ = false;
-  ESP_LOGI(TAG, "Effect STOPPED");
-
-  r_ = saved_r_;
-  g_ = saved_g_;
-  b_ = saved_b_;
-  w_ = saved_w_;
-
-  if (power_) render_();
-
-  if (effect_fireplace_switch_)
-    effect_fireplace_switch_->publish_state(false);
-  if (effect_alarm_switch_)
-    effect_alarm_switch_->publish_state(false);
-}
-
-
-void SuperRGBW::stop_effect_common_() {
-  if (!effect_running_) return;
-
-  effect_running_ = false;
-
-  r_ = saved_r_;
-  g_ = saved_g_;
-  b_ = saved_b_;
-  w_ = saved_w_;
-
-  if (r_number_) r_number_->publish_state(r_);
-  if (g_number_) g_number_->publish_state(g_);
-  if (b_number_) b_number_->publish_state(b_);
-  if (w_number_) w_number_->publish_state(w_);
 
   if (power_) render_();
 }
