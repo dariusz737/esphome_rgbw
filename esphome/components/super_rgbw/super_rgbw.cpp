@@ -54,17 +54,21 @@ void SuperRGBW::setup() {
 
 void SuperRGBW::loop() {
 
-  // ──────────────── EFEKTY (NAJWYŻSZY PRIORYTET) ────────────────
-  if (effect_running_) {
-    if (effect_fireplace_switch_ && effect_fireplace_switch_->state) {
-      loop_effect_fireplace_();
-      return;
+  void SuperRGBW::loop() {
+    if (effect_running_) {
+      if (effect_fireplace_switch_ && effect_fireplace_switch_->state) {
+        loop_effect_fireplace();
+        return;
+      }
+      if (effect_alarm_switch_ && effect_alarm_switch_->state) {
+        loop_effect_alarm();
+        return;
+      }
     }
-    if (effect_alarm_switch_ && effect_alarm_switch_->state) {
-      loop_effect_alarm_();
-      return;
-    }
+
+    // reszta logiki (Auto CT, fade, dim, itd.)
   }
+
 
   // ──────────────── AUTO CT (tylko jeśli brak efektu) ────────────────
   if (auto_ct_running_) {
@@ -118,21 +122,6 @@ void SuperRGBW::loop() {
 
   loop_dim_manual_();
   handle_auto_ct_time_();
-}
-                                                  // Auto CT start
-void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
-  if (!auto_ct_enabled_) return;
-
-  auto_ct_running_ = true;
-  auto_ct_step_ = 0;
-  auto_ct_last_ms_ = millis();
-  auto_ct_step_interval_ms_ = duration_ms / 30;
-
-  auto_ct_r_start_ = r_;
-  auto_ct_g_start_ = g_;
-  auto_ct_b_start_ = b_;
-  auto_ct_w_start_ = w_;
-  auto_ct_dim_snapshot_ = dim_;
 }
 
                                                   // Power
@@ -301,6 +290,21 @@ void SuperRGBW::scene_cold()    { set_scene(SCENE_COLD); }
 void SuperRGBW::scene_neutral() { set_scene(SCENE_NEUTRAL); }
 void SuperRGBW::scene_warm()    { set_scene(SCENE_WARM); }
 
+                                                  // Auto CT start
+void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
+  if (!auto_ct_enabled_) return;
+
+  auto_ct_running_ = true;
+  auto_ct_step_ = 0;
+  auto_ct_last_ms_ = millis();
+  auto_ct_step_interval_ms_ = duration_ms / 30;
+
+  auto_ct_r_start_ = r_;
+  auto_ct_g_start_ = g_;
+  auto_ct_b_start_ = b_;
+  auto_ct_w_start_ = w_;
+  auto_ct_dim_snapshot_ = dim_;
+}
 
                                                   // Przerwanie Auto CT przez uzytkownika
 void SuperRGBW::maybe_cancel_auto_ct_() {
@@ -363,31 +367,29 @@ void SuperRGBW::start_effect_alarm() {
 }
 
 
-bool SuperRGBW::start_effect_common_(esphome::switch_::Switch *requesting_switch) {
+void SuperRGBW::start_effect_common_(esphome::switch_::Switch *requesting_switch) {
   if (effect_running_) {
+    // inny efekt działa → cofamy kliknięty switch
     if (requesting_switch)
       requesting_switch->publish_state(false);
-    return false;
+    return;
   }
 
-  // przerwij Auto CT TYLKO jeśli AKTYWNIE BIEGNIE
+  // przerwij Auto CT tylko jeśli AKTYWNIE BIEGNIE
   if (auto_ct_running_) {
     auto_ct_running_ = false;
     auto_ct_enabled_ = false;
-
-    if (auto_ct_switch_) {
+    if (auto_ct_switch_)
       auto_ct_switch_->publish_state(false);
-    }
   }
 
-  // zapamiętaj aktualny stan
+  // zapamiętaj stan
   saved_r_ = r_;
   saved_g_ = g_;
   saved_b_ = b_;
   saved_w_ = w_;
 
   effect_running_ = true;
-  return true;
 }
 
 void SuperRGBW::stop_effect() {
