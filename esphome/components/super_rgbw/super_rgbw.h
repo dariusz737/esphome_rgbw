@@ -11,7 +11,7 @@ namespace super_rgbw {
     SCENE_NEUTRAL,
     SCENE_WARM
   };
-  
+
   enum EffectType {
     EFFECT_NONE,
     EFFECT_FIREPLACE,
@@ -78,17 +78,7 @@ class SuperRGBW : public esphome::Component {
   }
 
   // Efekty
-  void start_effect_fireplace();
-  void start_effect_alarm();
   void stop_effect();
-  void set_effect_fireplace_switch(esphome::switch_::Switch *s) {
-    effect_fireplace_switch_ = s;
-  }
-
-  void set_effect_alarm_switch(esphome::switch_::Switch *s) {
-    effect_alarm_switch_ = s;
-  }
-
 
 
  protected:

@@ -36,10 +36,12 @@ void SuperRGBW::setup() {
     effect_fireplace_switch_->add_on_state_callback(
       [this](bool state) {
         ESP_LOGI(TAG, "Fireplace switch -> %s", state ? "ON" : "OFF");
-        if (state)
-          start_effect_fireplace();
-        else
+
+        if (state) {
+          start_effect_common_(EFFECT_FIREPLACE, effect_fireplace_switch_);
+        } else {
           stop_effect();
+        }
       }
     );
   }
@@ -48,14 +50,15 @@ void SuperRGBW::setup() {
     effect_alarm_switch_->add_on_state_callback(
       [this](bool state) {
         ESP_LOGI(TAG, "Alarm switch -> %s", state ? "ON" : "OFF");
-        if (state)
-          start_effect_alarm();
-        else
+
+        if (state) {
+          start_effect_common_(EFFECT_ALARM, effect_alarm_switch_);
+        } else {
           stop_effect();
+        }
       }
     );
   }
-
   render_();
 }
                                                   // Loop
@@ -365,16 +368,6 @@ void SuperRGBW::handle_auto_ct_time_() {
 }
 
                                                   // Efekty
-
-void SuperRGBW::start_effect_fireplace() {
-  ESP_LOGI(TAG, "Request to start FIREPLACE effect");
-  start_effect_common_(EFFECT_FIREPLACE, effect_fireplace_switch_);
-}
-
-void SuperRGBW::start_effect_alarm() {
-  ESP_LOGI(TAG, "Request to start ALARM effect");
-  start_effect_common_(EFFECT_ALARM, effect_alarm_switch_);
-}
 
 void SuperRGBW::start_effect_common_(
     EffectType requested,
