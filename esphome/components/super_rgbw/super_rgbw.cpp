@@ -306,13 +306,15 @@ void SuperRGBW::scene_warm()    { set_scene(SCENE_WARM); }
 void SuperRGBW::maybe_cancel_auto_ct_() {
   if (auto_ct_internal_change_) return;
 
-  if (!auto_ct_running_ && !auto_ct_enabled_) return;
+  if (!auto_ct_running_) return;
+  if (auto_ct_running_) {
 
-  auto_ct_running_ = false;
-  auto_ct_enabled_ = false;
+    auto_ct_running_ = false;
+    auto_ct_enabled_ = false;
 
-  if (auto_ct_switch_) {
-    auto_ct_switch_->publish_state(false);
+    if (auto_ct_switch_) {
+      auto_ct_switch_->publish_state(false);
+    }
   }
 }
 
