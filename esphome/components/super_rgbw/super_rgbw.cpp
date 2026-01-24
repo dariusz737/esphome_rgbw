@@ -54,7 +54,6 @@ void SuperRGBW::setup() {
 
 void SuperRGBW::loop() {
 
-  void SuperRGBW::loop() {
     if (effect_running_) {
       if (effect_fireplace_switch_ && effect_fireplace_switch_->state) {
         loop_effect_fireplace();
@@ -65,10 +64,6 @@ void SuperRGBW::loop() {
         return;
       }
     }
-
-    // reszta logiki (Auto CT, fade, dim, itd.)
-  }
-
 
   // ──────────────── AUTO CT (tylko jeśli brak efektu) ────────────────
   if (auto_ct_running_) {
@@ -367,7 +362,8 @@ void SuperRGBW::start_effect_alarm() {
 }
 
 
-void SuperRGBW::start_effect_common_(...) {
+void SuperRGBW::start_effect_common_(esphome::switch_::Switch *requesting_switch) {
+
   if (effect_running_) {
     // inny efekt działa → cofamy kliknięty switch
     if (requesting_switch)
