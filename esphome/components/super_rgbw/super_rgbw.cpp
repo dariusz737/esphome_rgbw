@@ -367,7 +367,7 @@ void SuperRGBW::start_effect_alarm() {
 }
 
 
-void SuperRGBW::start_effect_common_(esphome::switch_::Switch *requesting_switch) {
+void SuperRGBW::start_effect_common_(...) {
   if (effect_running_) {
     // inny efekt działa → cofamy kliknięty switch
     if (requesting_switch)

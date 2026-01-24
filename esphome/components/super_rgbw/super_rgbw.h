@@ -169,7 +169,7 @@ class SuperRGBW : public esphome::Component {
                                                   // Efekty   
                                                 
   // Wspólna logika efektów
-  bool start_effect_common_(esphome::switch_::Switch *requesting_switch);
+  void start_effect_common_(esphome::switch_::Switch *requesting_switch);
   void stop_effect_common_();
 
   // Stan efektu
