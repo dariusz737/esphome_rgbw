@@ -380,21 +380,31 @@ void SuperRGBW::start_effect_common_(
     EffectType requested,
     esphome::switch_::Switch *requesting_switch
 ) {
-  ESP_LOGI(TAG, "start_effect_common_: requested=%d current=%d",
+  ESP_LOGI(TAG, "Effect request: %d, current: %d",
            requested, current_effect_);
 
-  // 1️⃣ Jeśli jakiś efekt JUŻ działa
-  if (current_effect_ != EFFECT_NONE) {
-    ESP_LOGI(TAG, "Another effect already running -> rejecting");
+  // ❌ JEST JUŻ INNY EFEKT → COFAMY KLIKNIĘTY SWITCH
+  if (current_effect_ != EFFECT_NONE &&
+      current_effect_ != requested) {
 
-    // cofamy switch, który próbował się włączyć
+    ESP_LOGI(TAG, "Another effect is running, rejecting request");
+
     if (requesting_switch)
       requesting_switch->publish_state(false);
 
     return;
   }
 
-  // 2️⃣ Zatrzymaj Auto CT TYLKO jeśli faktycznie biegnie
+  // 🔁 TEN SAM EFEKT JUŻ DZIAŁA → NIC NIE ROBIMY
+  if (current_effect_ == requested) {
+    ESP_LOGI(TAG, "Requested effect already running");
+    return;
+  }
+
+  // ✅ START NOWEGO EFEKTU
+  ESP_LOGI(TAG, "Starting effect %d", requested);
+
+  // Auto CT – tylko jeśli AKTYWNIE działa
   if (auto_ct_running_) {
     ESP_LOGI(TAG, "Stopping Auto CT due to effect start");
     auto_ct_running_ = false;
@@ -403,30 +413,25 @@ void SuperRGBW::start_effect_common_(
       auto_ct_switch_->publish_state(false);
   }
 
-  // 3️⃣ Zapamiętaj aktualny stan
+  // zapamiętaj stan
   saved_r_ = r_;
   saved_g_ = g_;
   saved_b_ = b_;
   saved_w_ = w_;
 
-  // 4️⃣ Ustaw aktywny efekt
   current_effect_ = requested;
-
-  ESP_LOGI(TAG, "Effect STARTED: %d", current_effect_);
 }
 
 
-void SuperRGBW::stop_effect() {
-  if (current_effect_ == EFFECT_NONE) {
-    ESP_LOGI(TAG, "stop_effect(): no effect running");
-    return;
-  }
 
-  ESP_LOGI(TAG, "Stopping effect %d", current_effect_);
+void SuperRGBW::stop_effect() {
+  if (current_effect_ == EFFECT_NONE)
+    return;
+
+  ESP_LOGI(TAG, "Stopping effect");
 
   current_effect_ = EFFECT_NONE;
 
-  // przywróć zapisany stan
   r_ = saved_r_;
   g_ = saved_g_;
   b_ = saved_b_;
@@ -437,15 +442,9 @@ void SuperRGBW::stop_effect() {
   if (b_number_) b_number_->publish_state(b_);
   if (w_number_) w_number_->publish_state(w_);
 
-  // wyłącz oba switche (bez zgadywania który)
-  if (effect_fireplace_switch_)
-    effect_fireplace_switch_->publish_state(false);
-  if (effect_alarm_switch_)
-    effect_alarm_switch_->publish_state(false);
-
-  if (power_)
-    render_();
+  if (power_) render_();
 }
+
 
 void SuperRGBW::loop_effect_fireplace_() {
   uint32_t now = millis();
