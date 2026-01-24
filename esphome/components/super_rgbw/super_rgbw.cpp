@@ -29,12 +29,13 @@ void SuperRGBW::setup() {
   if (w_number_) w_ = w_number_->state;
   if (dim_number_) dim_ = dim_number_->state;
 
-
   if (effect_fireplace_switch_) {
     effect_fireplace_switch_->add_on_state_callback(
       [this](bool state) {
-        if (state) start_effect_fireplace();
-        else stop_effect();
+        if (state)
+          start_effect_fireplace();
+        else
+          stop_effect();
       }
     );
   }
@@ -42,8 +43,10 @@ void SuperRGBW::setup() {
   if (effect_alarm_switch_) {
     effect_alarm_switch_->add_on_state_callback(
       [this](bool state) {
-        if (state) start_effect_alarm();
-        else stop_effect();
+        if (state)
+          start_effect_alarm();
+        else
+          stop_effect();
       }
     );
   }
