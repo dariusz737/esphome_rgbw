@@ -5,11 +5,10 @@
                                                   // Namespace komponentu
 namespace super_rgbw {
 
-                                                  // Sceny kolorystyczne
-enum Scene {
-  SCENE_COLD,
-  SCENE_NEUTRAL,
-  SCENE_WARM
+  enum EffectType {
+  EFFECT_NONE = 0,
+  EFFECT_FIREPLACE,
+  EFFECT_ALARM
 };
 
                                                   // Glowna klasa komponentu
@@ -192,12 +191,6 @@ class SuperRGBW : public esphome::Component {
   uint32_t effect_last_ms_{0};
   uint8_t effect_step_{0};
   
-  enum EffectType {
-    EFFECT_NONE,
-    EFFECT_FIREPLACE,
-    EFFECT_ALARM
-  };
-
   EffectType current_effect_{EFFECT_NONE};
 
 };
