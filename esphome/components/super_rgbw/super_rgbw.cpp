@@ -75,13 +75,13 @@ void SuperRGBW::loop() {
   if (effect_running_) {
     ESP_LOGV(TAG, "Effect running...");
 
-    if (effect_fireplace_switch_ && effect_fireplace_switch_->state()) {
+    if (effect_fireplace_switch_ && effect_fireplace_switch_->state) {
       ESP_LOGV(TAG, "Running FIREPLACE effect loop");
       loop_effect_fireplace_();
       return;
     }
 
-    if (effect_alarm_switch_ && effect_alarm_switch_->state()) {
+    if (effect_alarm_switch_ && effect_alarm_switch_->state) {
       ESP_LOGV(TAG, "Running ALARM effect loop");
       loop_effect_alarm_();
       return;
