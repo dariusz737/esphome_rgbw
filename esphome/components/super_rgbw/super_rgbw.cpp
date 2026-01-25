@@ -40,7 +40,7 @@ void SuperRGBW::setup() {
         if (state) {
           start_effect_common_(EFFECT_FIREPLACE, effect_fireplace_switch_);
         } else {
-          stop_effect();
+          stop_effect(EFFECT_FIREPLACE);
         }
       }
     );
@@ -54,7 +54,7 @@ void SuperRGBW::setup() {
         if (state) {
           start_effect_common_(EFFECT_ALARM, effect_alarm_switch_);
         } else {
-          stop_effect();
+          stop_effect(EFFECT_ALARM);
         }
       }
     );
@@ -417,11 +417,16 @@ void SuperRGBW::start_effect_common_(
 
 
 
-void SuperRGBW::stop_effect() {
-  if (current_effect_ == EFFECT_NONE)
-    return;
+void SuperRGBW::stop_effect(EffectType requested) {
+  ESP_LOGI(TAG, "Stop effect request: %d (active=%d)",
+           requested, current_effect_);
 
-  ESP_LOGI(TAG, "Stopping effect");
+  if (requested != current_effect_) {
+    ESP_LOGI(TAG, "Stop ignored (not active effect)");
+    return;
+  }
+
+  ESP_LOGI(TAG, "Effect STOPPED");
 
   current_effect_ = EFFECT_NONE;
 

@@ -77,9 +77,6 @@ class SuperRGBW : public esphome::Component {
     auto_ct_duration_ = n;
   }
 
-  // Efekty
-  void stop_effect();
-
   // Switche efektów (ustawiane z YAML / codegen)
   void set_effect_fireplace_switch(esphome::switch_::Switch *s) {
     effect_fireplace_switch_ = s;
@@ -88,6 +85,8 @@ class SuperRGBW : public esphome::Component {
   void set_effect_alarm_switch(esphome::switch_::Switch *s) {
     effect_alarm_switch_ = s;
   }
+
+  void stop_effect(EffectType requested);
 
  protected:
 
