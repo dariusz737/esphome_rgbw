@@ -124,7 +124,7 @@ void SuperRGBW::set_power_immediate_(bool on) {
                                                   // RGBW
 void SuperRGBW::set_r(float v) {
   maybe_cancel_auto_ct_();
-  dim_stop_forced();
+  dim_stop_forced_();
 
   r_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -134,7 +134,7 @@ void SuperRGBW::set_r(float v) {
 
 void SuperRGBW::set_g(float v) {
   maybe_cancel_auto_ct_();
-  dim_stop_forced();
+  dim_stop_forced_();
 
   g_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -144,7 +144,7 @@ void SuperRGBW::set_g(float v) {
 
 void SuperRGBW::set_b(float v) {
   maybe_cancel_auto_ct_();
-  dim_stop_forced();
+  dim_stop_forced_();
 
   b_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -154,7 +154,7 @@ void SuperRGBW::set_b(float v) {
 
 void SuperRGBW::set_w(float v) {
   maybe_cancel_auto_ct_();
-  dim_stop_forced();
+  dim_stop_forced_();
 
   w_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -164,7 +164,7 @@ void SuperRGBW::set_w(float v) {
 
 void SuperRGBW::set_dim(float v) {
   maybe_cancel_auto_ct_();
-  dim_stop_forced();
+  dim_stop_forced_();
 
   apply_dim_(clampf(v, DIM_FLOOR, 1.0f));
   if (dim_number_) dim_number_->publish_state(dim_);
@@ -186,7 +186,7 @@ void SuperRGBW::update_dim_from_channels_() {
 void SuperRGBW::apply_dim_(float target_dim) {
   if (dim_sync_lock_) return;
   dim_sync_lock_ = true;
-  dim_stop_forced
+  dim_stop_forced_();
 
   float max_v = std::max({r_, g_, b_, w_});
   if (max_v > 0.0f) {
@@ -221,7 +221,7 @@ void SuperRGBW::dim_manual_toggle() {
   }
 }
 
-void SuperRGBW::dim_stop_forced() {
+void SuperRGBW::dim_stop_forced_() {
   dim_manual_running_ = false;
 }
 
@@ -243,7 +243,7 @@ void SuperRGBW::loop_dim_manual_() {
   if (power_) render_();
 }
 
-void SuperRGBW::stop_dim_manual_() {
+void SuperRGBW::dim_manual_stop_() {
   if (dim_manual_running_) {
     dim_manual_running_ = false;
   }
@@ -252,7 +252,7 @@ void SuperRGBW::stop_dim_manual_() {
                                                   // Sceny
 void SuperRGBW::set_scene(Scene scene) {
   maybe_cancel_auto_ct_();
-  dim_stop_forced();
+  dim_stop_forced_();
 
   current_scene_ = scene;
   float d = dim_;
@@ -275,7 +275,7 @@ void SuperRGBW::set_scene(Scene scene) {
 void SuperRGBW::next_scene() {
   set_scene(current_scene_ == SCENE_WARM ? SCENE_COLD : Scene(current_scene_ + 1));
 }
-  dim_stop_forced();
+  dim_stop_forced_();
 
 void SuperRGBW::scene_cold()    { set_scene(SCENE_COLD); }
 void SuperRGBW::scene_neutral() { set_scene(SCENE_NEUTRAL); }
@@ -284,7 +284,7 @@ void SuperRGBW::scene_warm()    { set_scene(SCENE_WARM); }
                                                   // Auto CT start
 void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
   if (!auto_ct_enabled_) return;
-  dim_stop_forced();
+  dim_stop_forced_();
 
   auto_ct_running_ = true;
   auto_ct_step_ = 0;
@@ -360,7 +360,7 @@ void SuperRGBW::start_effect_common_(EffectType requested) {
   if (current_effect_ != EFFECT_NONE) {
     return; // inny efekt już działa
   }
-  dim_stop_forced();
+  dim_stop_forced_();
 
   if (auto_ct_running_) {
     auto_ct_running_ = false;
@@ -388,7 +388,7 @@ current_effect_ = requested;
 
 void SuperRGBW::stop_effect(EffectType requested) {
   if (current_effect_ == EFFECT_NONE) return;
-  dim_stop_forced();
+  dim_stop_forced_();
 
   current_effect_ = EFFECT_NONE;
 

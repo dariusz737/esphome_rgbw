@@ -183,7 +183,7 @@ class SuperRGBW : public esphome::Component {
   void loop_effect_fireplace_();
   void loop_effect_alarm_();
 
-  void dim_stop_forced();
+  void dim_stop_forced_();
 
   uint32_t effect_last_ms_{0};
   uint8_t effect_step_{0};
