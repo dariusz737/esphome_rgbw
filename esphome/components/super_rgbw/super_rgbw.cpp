@@ -186,7 +186,6 @@ void SuperRGBW::update_dim_from_channels_() {
 void SuperRGBW::apply_dim_(float target_dim) {
   if (dim_sync_lock_) return;
   dim_sync_lock_ = true;
-  dim_stop_forced_();
 
   float max_v = std::max({r_, g_, b_, w_});
   if (max_v > 0.0f) {
