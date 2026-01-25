@@ -82,8 +82,6 @@ class SuperRGBW : public esphome::Component {
   void start_effect(EffectType requested);
   void stop_effect(EffectType requested);
 
-  void stop_effect(EffectType requested);
-
  protected:
 
                                                   // Render PWM
