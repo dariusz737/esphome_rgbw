@@ -172,6 +172,12 @@ class SuperRGBW : public esphome::Component {
   float saved_g_{0};
   float saved_b_{0};
   float saved_w_{0};
+
+    // --- Power pomocniczy dla efektów (bez fade) ---
+  void set_power_immediate_(bool on);
+
+  // Czy efekt wymusił włączenie zasilania
+  bool effect_forced_power_{false};
   
                                                   // --- Loop efektów ---
   void loop_effect_fireplace_();

@@ -111,7 +111,14 @@ void SuperRGBW::set_power(bool on) {
     fading_off_ = true;
   }
 }
-
+                                                    // Power natychmiast bez fade
+void SuperRGBW::set_power_immediate_(bool on) {
+  power_ = on;
+  fade_level_ = on ? 1.0f : 0.0f;
+  fade_target_ = fade_level_;
+  fading_off_ = false;
+  render_();
+}
                                                   // RGBW
 void SuperRGBW::set_r(float v) {
   maybe_cancel_auto_ct_();
@@ -341,12 +348,20 @@ void SuperRGBW::start_effect_common_(EffectType requested) {
       auto_ct_switch_->publish_state(false);
   }
 
+  // zapamiętaj stan
   saved_r_ = r_;
   saved_g_ = g_;
   saved_b_ = b_;
   saved_w_ = w_;
 
-  current_effect_ = requested;
+  // jeśli światło było zgaszone → efekt wymusza power
+  if (!power_) {
+    effect_forced_power_ = true;
+    set_power_immediate_(true);
+  }
+
+current_effect_ = requested;
+
 }
 
 
@@ -360,7 +375,24 @@ void SuperRGBW::stop_effect(EffectType requested) {
   b_ = saved_b_;
   w_ = saved_w_;
 
-  if (power_) render_();
+  // przywróć stan RGBW
+  r_ = saved_r_;
+  g_ = saved_g_;
+  b_ = saved_b_;
+  w_ = saved_w_;
+
+  if (r_number_) r_number_->publish_state(r_);
+  if (g_number_) g_number_->publish_state(g_);
+  if (b_number_) b_number_->publish_state(b_);
+  if (w_number_) w_number_->publish_state(w_);
+
+  // jeśli efekt włączył światło → zgaś je
+  if (effect_forced_power_) {
+    set_power_immediate_(false);
+    effect_forced_power_ = false;
+  } else if (power_) {
+    render_();
+  }
 }
 
 
