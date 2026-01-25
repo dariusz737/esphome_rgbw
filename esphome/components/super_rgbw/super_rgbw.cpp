@@ -243,7 +243,7 @@ void SuperRGBW::loop_dim_manual_() {
   if (power_) render_();
 }
 
-void SuperRGBW::dim_manual_stop_() {
+void SuperRGBW::dim_manual_stop() {
   if (dim_manual_running_) {
     dim_manual_running_ = false;
   }
