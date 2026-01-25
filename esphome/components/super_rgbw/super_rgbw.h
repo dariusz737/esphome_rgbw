@@ -169,8 +169,6 @@ class SuperRGBW : public esphome::Component {
                                                   // Wspólna logika efektów
   void start_effect_common_( EffectType requested );
   
-  void stop_effect_common_();
-
                                                   // Zapamiętany stan RGBW
   float saved_r_{0};
   float saved_g_{0};
