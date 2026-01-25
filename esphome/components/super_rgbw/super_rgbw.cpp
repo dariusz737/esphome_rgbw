@@ -100,7 +100,7 @@ void SuperRGBW::loop() {
 
                                                   // Power
 void SuperRGBW::set_power(bool on) {
-  dim_stop_forced();
+  dim_stop_forced_();
 
   fade_start_ = fade_level_;
   fade_target_ = on ? 1.0f : 0.0f;
@@ -274,8 +274,10 @@ void SuperRGBW::set_scene(Scene scene) {
 
 void SuperRGBW::next_scene() {
   set_scene(current_scene_ == SCENE_WARM ? SCENE_COLD : Scene(current_scene_ + 1));
-}
+
   dim_stop_forced_();
+}
+
 
 void SuperRGBW::scene_cold()    { set_scene(SCENE_COLD); }
 void SuperRGBW::scene_neutral() { set_scene(SCENE_NEUTRAL); }
