@@ -28,29 +28,6 @@ void SuperRGBW::setup() {
   if (w_number_) w_ = w_number_->state;
   if (dim_number_) dim_ = dim_number_->state;
 
-  if (effect_fireplace_switch_) {
-    effect_fireplace_switch_->add_on_state_callback(
-      [this](bool state) {
-        if (state) {
-          start_effect_common_(EFFECT_FIREPLACE, effect_fireplace_switch_);
-        } else {
-          stop_effect(EFFECT_FIREPLACE);
-        }
-      }
-    );
-  }
-
-  if (effect_alarm_switch_) {
-    effect_alarm_switch_->add_on_state_callback(
-      [this](bool state) {
-        if (state) {
-          start_effect_common_(EFFECT_ALARM, effect_alarm_switch_);
-        } else {
-          stop_effect(EFFECT_ALARM);
-        }
-      }
-    );
-  }
   render_();
 }
                                                   // Loop
@@ -347,20 +324,14 @@ void SuperRGBW::handle_auto_ct_time_() {
 }
 
                                                   // Efekty
-void SuperRGBW::start_effect_common_(
-    EffectType requested,
-    esphome::switch_::Switch *requesting_switch
-) {
-  if (current_effect_ != EFFECT_NONE &&
-      current_effect_ != requested) {
-    if (requesting_switch)
-      requesting_switch->publish_state(false);
 
-    return;
-  }
+void SuperRGBW::start_effect(EffectType requested) {
+  start_effect_common_(requested);
+}
 
-  if (current_effect_ == requested) {
-    return;
+void SuperRGBW::start_effect_common_(EffectType requested) {
+  if (current_effect_ != EFFECT_NONE) {
+    return; // inny efekt już działa
   }
 
   if (auto_ct_running_) {
@@ -378,10 +349,10 @@ void SuperRGBW::start_effect_common_(
   current_effect_ = requested;
 }
 
+
 void SuperRGBW::stop_effect(EffectType requested) {
-  if (requested != current_effect_) {
-    return;
-  }
+  if (current_effect_ == EFFECT_NONE) return;
+  if (requested != current_effect_) return;
 
   current_effect_ = EFFECT_NONE;
 
@@ -390,13 +361,9 @@ void SuperRGBW::stop_effect(EffectType requested) {
   b_ = saved_b_;
   w_ = saved_w_;
 
-  if (r_number_) r_number_->publish_state(r_);
-  if (g_number_) g_number_->publish_state(g_);
-  if (b_number_) b_number_->publish_state(b_);
-  if (w_number_) w_number_->publish_state(w_);
-
   if (power_) render_();
 }
+
 
 void SuperRGBW::loop_effect_fireplace_() {
   uint32_t now = millis();

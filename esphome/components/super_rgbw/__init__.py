@@ -28,9 +28,6 @@ CONF_TIME_ID = "time_id"
 CONF_AUTO_CT_START_MIN = "auto_ct_start_min"
 CONF_AUTO_CT_DURATION = "auto_ct_duration"
 
-CONF_EFFECT_FIREPLACE_SWITCH = "effect_fireplace_switch"
-CONF_EFFECT_ALARM_SWITCH = "effect_alarm_switch"
-
                                                   # Schemat konfiguracji komponentu
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -53,9 +50,6 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Required(CONF_TIME_ID): cv.use_id(time.RealTimeClock),
         cv.Required(CONF_AUTO_CT_START_MIN): cv.use_id(number.Number),
         cv.Required(CONF_AUTO_CT_DURATION): cv.use_id(number.Number),
-
-        cv.Optional(CONF_EFFECT_FIREPLACE_SWITCH): cv.use_id(switch.Switch),
-        cv.Optional(CONF_EFFECT_ALARM_SWITCH): cv.use_id(switch.Switch),
 
     }
 ).extend(cv.COMPONENT_SCHEMA)
@@ -103,14 +97,3 @@ async def to_code(config):
             await cg.get_variable(config[CONF_AUTO_CT_DURATION])
         )
     )
-
-                                                  # Switche efektów
-    if CONF_EFFECT_FIREPLACE_SWITCH in config:
-        cg.add(var.set_effect_fireplace_switch(
-            await cg.get_variable(config[CONF_EFFECT_FIREPLACE_SWITCH])
-        ))
-
-    if CONF_EFFECT_ALARM_SWITCH in config:
-        cg.add(var.set_effect_alarm_switch(
-            await cg.get_variable(config[CONF_EFFECT_ALARM_SWITCH])
-        ))
