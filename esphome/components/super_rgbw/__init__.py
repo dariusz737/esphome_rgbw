@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 
-from esphome.components import output, number, switch, time
+from esphome.components import number, output, switch, time
 from esphome.const import CONF_ID
 
                                                   # Namespace i klasa C++ komponentu
@@ -88,13 +88,14 @@ async def to_code(config):
                 await cg.get_variable(config[CONF_AUTO_CT_SWITCH])
             )
         )
+                                                  # Auto CT (czas i parametry)
     cg.add(var.set_time(
         await cg.get_variable(config[CONF_TIME_ID])
     ))
     cg.add(
-    var.set_auto_ct_start_min_number(
-        await cg.get_variable(config[CONF_AUTO_CT_START_MIN])
-    )
+        var.set_auto_ct_start_min_number(
+            await cg.get_variable(config[CONF_AUTO_CT_START_MIN])
+        )
     )
 
     cg.add(
@@ -103,6 +104,7 @@ async def to_code(config):
         )
     )
 
+                                                  # Switche efektów
     if CONF_EFFECT_FIREPLACE_SWITCH in config:
         cg.add(var.set_effect_fireplace_switch(
             await cg.get_variable(config[CONF_EFFECT_FIREPLACE_SWITCH])
@@ -112,6 +114,3 @@ async def to_code(config):
         cg.add(var.set_effect_alarm_switch(
             await cg.get_variable(config[CONF_EFFECT_ALARM_SWITCH])
         ))
-
-
-

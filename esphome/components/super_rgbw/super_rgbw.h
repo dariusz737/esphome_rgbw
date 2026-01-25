@@ -12,6 +12,7 @@ namespace super_rgbw {
     SCENE_WARM
   };
 
+                                                  // Efekty
   enum EffectType {
     EFFECT_NONE,
     EFFECT_FIREPLACE,
@@ -77,7 +78,7 @@ class SuperRGBW : public esphome::Component {
     auto_ct_duration_ = n;
   }
 
-  // Switche efektów (ustawiane z YAML / codegen)
+                                                  // Switche efektów (ustawiane z YAML / codegen)
   void set_effect_fireplace_switch(esphome::switch_::Switch *s) {
     effect_fireplace_switch_ = s;
   }
@@ -97,10 +98,10 @@ class SuperRGBW : public esphome::Component {
   void update_dim_from_channels_();
   void apply_dim_(float target_dim);
   void loop_dim_manual_();
-                                                    // Przerwanie Auto CT przez uzytkownika
+                                                  // Przerwanie Auto CT przez uzytkownika
   void maybe_cancel_auto_ct_();
 
-                                                  // Logika wewnetrzna Auto CT        
+                                                  // Logika wewnetrzna Auto CT
   void handle_auto_ct_time_();
 
                                                   // Aktualna scena
@@ -168,26 +169,26 @@ class SuperRGBW : public esphome::Component {
 
   int last_auto_ct_min_{-1};
 
-                                                  // Efekty   
-                                                
-  // Wspólna logika efektów
+                                                  // Efekty
+
+                                                  // Wspólna logika efektów
   void start_effect_common_(
     EffectType requested,
     esphome::switch_::Switch *requesting_switch
   );
   void stop_effect_common_();
 
-  // Zapamiętany stan RGBW
+                                                  // Zapamiętany stan RGBW
   float saved_r_{0};
   float saved_g_{0};
   float saved_b_{0};
   float saved_w_{0};
 
-  // Switche efektów (ustawiane z codegen)
+                                                  // Switche efektów (ustawiane z codegen)
   esphome::switch_::Switch *effect_fireplace_switch_{nullptr};
   esphome::switch_::Switch *effect_alarm_switch_{nullptr};
   
-  // --- Loop efektów ---
+                                                  // --- Loop efektów ---
   void loop_effect_fireplace_();
   void loop_effect_alarm_();
 

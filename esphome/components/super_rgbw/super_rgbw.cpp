@@ -1,12 +1,9 @@
 #include "super_rgbw.h"
 #include <algorithm>
-#include "esphome/core/log.h"
 
-                                                  // Pomocnicze
 namespace super_rgbw {
 
-static const char *TAG = "super_rgbw";
-
+                                                  // Pomocnicze
 static constexpr float DIM_FLOOR = 0.05f;
 
 static inline float clampf(float v, float lo, float hi) {
@@ -17,7 +14,6 @@ static inline float clampf(float v, float lo, float hi) {
 
                                                   // Setup
 void SuperRGBW::setup() {
-
   if (auto_ct_switch_) {
     auto_ct_switch_->add_on_state_callback(
       [this](bool state) {
@@ -35,8 +31,6 @@ void SuperRGBW::setup() {
   if (effect_fireplace_switch_) {
     effect_fireplace_switch_->add_on_state_callback(
       [this](bool state) {
-        ESP_LOGI(TAG, "Fireplace switch -> %s", state ? "ON" : "OFF");
-
         if (state) {
           start_effect_common_(EFFECT_FIREPLACE, effect_fireplace_switch_);
         } else {
@@ -49,8 +43,6 @@ void SuperRGBW::setup() {
   if (effect_alarm_switch_) {
     effect_alarm_switch_->add_on_state_callback(
       [this](bool state) {
-        ESP_LOGI(TAG, "Alarm switch -> %s", state ? "ON" : "OFF");
-
         if (state) {
           start_effect_common_(EFFECT_ALARM, effect_alarm_switch_);
         } else {
@@ -62,12 +54,8 @@ void SuperRGBW::setup() {
   render_();
 }
                                                   // Loop
-
 void SuperRGBW::loop() {
-
   if (current_effect_ != EFFECT_NONE) {
-    ESP_LOGI(TAG, "Effect running: %d", current_effect_);
-
     switch (current_effect_) {
       case EFFECT_FIREPLACE:
         loop_effect_fireplace_();
@@ -81,9 +69,6 @@ void SuperRGBW::loop() {
         break;
     }
   }
-
-
-  // ──────────────── AUTO CT (tylko jeśli brak efektu) ────────────────
   if (auto_ct_running_) {
     uint32_t now = millis();
     if (now - auto_ct_last_ms_ >= auto_ct_step_interval_ms_) {
@@ -114,7 +99,6 @@ void SuperRGBW::loop() {
     }
   }
 
-  // ──────────────── FADE ────────────────
   if (fade_level_ != fade_target_) {
     uint32_t now = millis();
     float t = float(now - fade_start_ms_) / float(fade_time_ms_);
@@ -153,7 +137,6 @@ void SuperRGBW::set_power(bool on) {
 
                                                   // RGBW
 void SuperRGBW::set_r(float v) {
-
   maybe_cancel_auto_ct_();
 
   r_ = clampf(v, 0.0f, 1.0f);
@@ -163,7 +146,6 @@ void SuperRGBW::set_r(float v) {
 }
 
 void SuperRGBW::set_g(float v) {
-
   maybe_cancel_auto_ct_();
 
   g_ = clampf(v, 0.0f, 1.0f);
@@ -173,7 +155,6 @@ void SuperRGBW::set_g(float v) {
 }
 
 void SuperRGBW::set_b(float v) {
-
   maybe_cancel_auto_ct_();
 
   b_ = clampf(v, 0.0f, 1.0f);
@@ -183,7 +164,6 @@ void SuperRGBW::set_b(float v) {
 }
 
 void SuperRGBW::set_w(float v) {
-
   maybe_cancel_auto_ct_();
 
   w_ = clampf(v, 0.0f, 1.0f);
@@ -192,9 +172,7 @@ void SuperRGBW::set_w(float v) {
   if (power_) render_();
 }
 
-                                                  // DIM
 void SuperRGBW::set_dim(float v) {
-
   maybe_cancel_auto_ct_();
 
   apply_dim_(clampf(v, DIM_FLOOR, 1.0f));
@@ -272,7 +250,6 @@ void SuperRGBW::loop_dim_manual_() {
 
                                                   // Sceny
 void SuperRGBW::set_scene(Scene scene) {
-
   maybe_cancel_auto_ct_();
 
   current_scene_ = scene;
@@ -333,6 +310,7 @@ void SuperRGBW::maybe_cancel_auto_ct_() {
   }
 }
 
+                                                  // Auto CT wlacz/wy
 void SuperRGBW::set_auto_ct_enabled(bool v) {
   if (!v) {
     maybe_cancel_auto_ct_();
@@ -341,6 +319,7 @@ void SuperRGBW::set_auto_ct_enabled(bool v) {
   auto_ct_enabled_ = true;
 }
 
+                                                  // Logika Auto CT (timer)
 void SuperRGBW::handle_auto_ct_time_() {
   if (!auto_ct_enabled_) return;
   if (!time_) return;
@@ -368,45 +347,29 @@ void SuperRGBW::handle_auto_ct_time_() {
 }
 
                                                   // Efekty
-
 void SuperRGBW::start_effect_common_(
     EffectType requested,
     esphome::switch_::Switch *requesting_switch
 ) {
-  ESP_LOGI(TAG, "Effect request: %d, current: %d",
-           requested, current_effect_);
-
-  // ❌ JEST JUŻ INNY EFEKT → COFAMY KLIKNIĘTY SWITCH
   if (current_effect_ != EFFECT_NONE &&
       current_effect_ != requested) {
-
-    ESP_LOGI(TAG, "Another effect is running, rejecting request");
-
     if (requesting_switch)
       requesting_switch->publish_state(false);
 
     return;
   }
 
-  // 🔁 TEN SAM EFEKT JUŻ DZIAŁA → NIC NIE ROBIMY
   if (current_effect_ == requested) {
-    ESP_LOGI(TAG, "Requested effect already running");
     return;
   }
 
-  // ✅ START NOWEGO EFEKTU
-  ESP_LOGI(TAG, "Starting effect %d", requested);
-
-  // Auto CT – tylko jeśli AKTYWNIE działa
   if (auto_ct_running_) {
-    ESP_LOGI(TAG, "Stopping Auto CT due to effect start");
     auto_ct_running_ = false;
     auto_ct_enabled_ = false;
     if (auto_ct_switch_)
       auto_ct_switch_->publish_state(false);
   }
 
-  // zapamiętaj stan
   saved_r_ = r_;
   saved_g_ = g_;
   saved_b_ = b_;
@@ -415,18 +378,10 @@ void SuperRGBW::start_effect_common_(
   current_effect_ = requested;
 }
 
-
-
 void SuperRGBW::stop_effect(EffectType requested) {
-  ESP_LOGI(TAG, "Stop effect request: %d (active=%d)",
-           requested, current_effect_);
-
   if (requested != current_effect_) {
-    ESP_LOGI(TAG, "Stop ignored (not active effect)");
     return;
   }
-
-  ESP_LOGI(TAG, "Effect STOPPED");
 
   current_effect_ = EFFECT_NONE;
 
@@ -443,7 +398,6 @@ void SuperRGBW::stop_effect(EffectType requested) {
   if (power_) render_();
 }
 
-
 void SuperRGBW::loop_effect_fireplace_() {
   uint32_t now = millis();
   if (now - effect_last_ms_ < 120) return;
@@ -457,7 +411,6 @@ void SuperRGBW::loop_effect_fireplace_() {
 
   float w = d * (0.6f + 0.4f * flicker);
   float r = w * (0.35f + 0.15f * flicker);
-  ESP_LOGI(TAG, "Fireplace tick");
   r_ = clampf(r, 0.0f, 1.0f);
   g_ = 0.0f;
   b_ = 0.0f;
@@ -473,7 +426,6 @@ void SuperRGBW::loop_effect_alarm_() {
 
   static uint8_t step = 0;
   step = (step + 1) % 4;
-  ESP_LOGI(TAG, "alarm tick");
   switch (step) {
     case 0: r_=1; g_=0; b_=0; w_=0; break;
     case 1: r_=1; g_=1; b_=1; w_=0; break;
@@ -506,4 +458,4 @@ void SuperRGBW::set_fade_time(uint32_t fade_ms) {
   fade_time_ms_ = std::max<uint32_t>(fade_ms, 1);
 }
 
-}  // namespace super_rgbw
+}
