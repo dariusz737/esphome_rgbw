@@ -352,7 +352,6 @@ void SuperRGBW::start_effect_common_(EffectType requested) {
 
 void SuperRGBW::stop_effect(EffectType requested) {
   if (current_effect_ == EFFECT_NONE) return;
-  if (requested != current_effect_) return;
 
   current_effect_ = EFFECT_NONE;
 
