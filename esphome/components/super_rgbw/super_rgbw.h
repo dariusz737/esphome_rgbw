@@ -37,6 +37,8 @@ enum VisualEffect {
 //
 class SuperRGBW : public esphome::Component {
  public:
+
+   void __THIS_METHOD_MUST_EXIST__();
   // ------------------------------------------------------------
   //  PUBLICZNE API (używane w YAML / lambdach)
   // ------------------------------------------------------------
@@ -45,7 +47,7 @@ class SuperRGBW : public esphome::Component {
 // Efekty wizualne – API
   void start_fireplace();
   void start_alarm();
-  void stop_visual();
+  void stop_visual();§
 
   // Ręczne sterowanie jasnością
   void dim_manual_toggle();
