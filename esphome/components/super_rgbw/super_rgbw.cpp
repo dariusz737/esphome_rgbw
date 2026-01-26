@@ -3,7 +3,10 @@
 
 namespace super_rgbw {
 
-                                                  // Pomocnicze
+// ============================================================
+//  POMOCNICZE
+// ============================================================
+
 static constexpr float DIM_FLOOR = 0.05f;
 
 static inline float clampf(float v, float lo, float hi) {
@@ -12,7 +15,10 @@ static inline float clampf(float v, float lo, float hi) {
   return v;
 }
 
-                                                  // Setup
+// ============================================================
+//  SETUP
+// ============================================================
+
 void SuperRGBW::setup() {
   if (auto_ct_switch_) {
     auto_ct_switch_->add_on_state_callback(
@@ -30,7 +36,11 @@ void SuperRGBW::setup() {
 
   render_();
 }
-                                                  // Loop
+
+// ============================================================
+//  LOOP
+// ============================================================
+
 void SuperRGBW::loop() {
 
   // --- arbiter sterowania ---
@@ -83,14 +93,15 @@ void SuperRGBW::loop() {
     render_();
   }
 
-  // --- tylko TRIGGER auto CT ---
+  // --- tylko trigger AUTO CT ---
   handle_auto_ct_time_();
 }
 
+// ============================================================
+//  POWER / FADE
+// ============================================================
 
-                                                  // Power
 void SuperRGBW::set_power(bool on) {
-
   fade_start_ = fade_level_;
   fade_target_ = on ? 1.0f : 0.0f;
   fade_start_ms_ = millis();
@@ -102,7 +113,7 @@ void SuperRGBW::set_power(bool on) {
     fading_off_ = true;
   }
 }
-                                                    // Power natychmiast bez fade
+
 void SuperRGBW::set_power_immediate_(bool on) {
   power_ = on;
   fade_level_ = on ? 1.0f : 0.0f;
@@ -110,9 +121,12 @@ void SuperRGBW::set_power_immediate_(bool on) {
   fading_off_ = false;
   render_();
 }
-                                                  // RGBW
-void SuperRGBW::set_r(float v) {
 
+// ============================================================
+//  RGBW + DIM
+// ============================================================
+
+void SuperRGBW::set_r(float v) {
   r_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (r_number_) r_number_->publish_state(r_);
@@ -120,7 +134,6 @@ void SuperRGBW::set_r(float v) {
 }
 
 void SuperRGBW::set_g(float v) {
-
   g_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (g_number_) g_number_->publish_state(g_);
@@ -128,7 +141,6 @@ void SuperRGBW::set_g(float v) {
 }
 
 void SuperRGBW::set_b(float v) {
-
   b_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (b_number_) b_number_->publish_state(b_);
@@ -136,7 +148,6 @@ void SuperRGBW::set_b(float v) {
 }
 
 void SuperRGBW::set_w(float v) {
-
   w_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
   if (w_number_) w_number_->publish_state(w_);
@@ -144,13 +155,15 @@ void SuperRGBW::set_w(float v) {
 }
 
 void SuperRGBW::set_dim(float v) {
-
   apply_dim_(clampf(v, DIM_FLOOR, 1.0f));
   if (dim_number_) dim_number_->publish_state(dim_);
   if (power_) render_();
 }
 
-                                                  // DIM z kanalow
+// ============================================================
+//  DIM – LOGIKA
+// ============================================================
+
 void SuperRGBW::update_dim_from_channels_() {
   if (dim_sync_lock_) return;
   dim_sync_lock_ = true;
@@ -161,7 +174,6 @@ void SuperRGBW::update_dim_from_channels_() {
   dim_sync_lock_ = false;
 }
 
-                                                  // Skalowanie DIM
 void SuperRGBW::apply_dim_(float target_dim) {
   if (dim_sync_lock_) return;
   dim_sync_lock_ = true;
@@ -186,7 +198,10 @@ void SuperRGBW::apply_dim_(float target_dim) {
   dim_sync_lock_ = false;
 }
 
-                                                  // Reczne dimowanie
+// ============================================================
+//  DIM MANUAL (SCRIPT_DIM_MANUAL)
+// ============================================================
+
 void SuperRGBW::dim_manual_toggle() {
   if (active_script_ != SCRIPT_DIM_MANUAL) {
     start_script_(SCRIPT_DIM_MANUAL);
@@ -196,9 +211,13 @@ void SuperRGBW::dim_manual_toggle() {
   }
 }
 
+void SuperRGBW::dim_manual_stop() {
+  if (active_script_ == SCRIPT_DIM_MANUAL)
+    stop_script_();
+}
 
 void SuperRGBW::loop_dim_manual_() {
-  if (!dim_manual_running_) return;
+  if (active_script_ != SCRIPT_DIM_MANUAL) return;
 
   uint32_t now = millis();
   if (now - dim_manual_last_ms_ < 150) return;
@@ -208,54 +227,22 @@ void SuperRGBW::loop_dim_manual_() {
 
   if (next >= 1.0f || next <= DIM_FLOOR) {
     next = clampf(next, DIM_FLOOR, 1.0f);
-    dim_manual_running_ = false;
+    stop_script_();
   }
 
   apply_dim_(next);
   if (power_) render_();
 }
 
-void SuperRGBW::dim_manual_stop() {
-  if (active_script_ == SCRIPT_DIM_MANUAL)
-    stop_script_();
+// ============================================================
+//  AUTO CT (SCRIPT_AUTO_CT)
+// ============================================================
+
+void SuperRGBW::set_auto_ct_enabled(bool v) {
+  auto_ct_enabled_ = v;
 }
 
-
-                                                  // Sceny
-void SuperRGBW::set_scene(Scene scene) {
-
-  current_scene_ = scene;
-  float d = dim_;
-
-  switch (scene) {
-    case SCENE_COLD:    r_ = d; g_ = d; b_ = d; w_ = 0; break;
-    case SCENE_NEUTRAL: r_ = d; g_ = d; b_ = d; w_ = d; break;
-    case SCENE_WARM:    r_ = 0; g_ = 0; b_ = 0; w_ = d; break;
-  }
-
-  if (r_number_) r_number_->publish_state(r_);
-  if (g_number_) g_number_->publish_state(g_);
-  if (b_number_) b_number_->publish_state(b_);
-  if (w_number_) w_number_->publish_state(w_);
-  if (dim_number_) dim_number_->publish_state(dim_);
-
-  if (power_) render_();
-}
-
-void SuperRGBW::next_scene() {
-  set_scene(current_scene_ == SCENE_WARM ? SCENE_COLD : Scene(current_scene_ + 1));
-}
-
-
-void SuperRGBW::scene_cold()    { set_scene(SCENE_COLD); }
-void SuperRGBW::scene_neutral() { set_scene(SCENE_NEUTRAL); }
-void SuperRGBW::scene_warm()    { set_scene(SCENE_WARM); }
-
-                                                  // Auto CT start
 void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
-  if (!auto_ct_enabled_) return;
-
-  auto_ct_running_ = true;
   auto_ct_step_ = 0;
   auto_ct_last_ms_ = millis();
   auto_ct_step_interval_ms_ = duration_ms / 30;
@@ -267,21 +254,34 @@ void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
   auto_ct_dim_snapshot_ = dim_;
 }
 
+void SuperRGBW::loop_effect_auto_ct_() {
+  uint32_t now = millis();
+  if (now - auto_ct_last_ms_ < auto_ct_step_interval_ms_) return;
+  auto_ct_last_ms_ = now;
 
-                                                  // Auto CT wlacz/wy
-void SuperRGBW::set_auto_ct_enabled(bool v) {
-  if (!v) {
-    return;
+  auto_ct_step_++;
+  float k = float(auto_ct_step_) / 30.0f;
+
+  r_ = auto_ct_r_start_ * (1.0f - k);
+  g_ = auto_ct_g_start_ * (1.0f - k);
+  b_ = auto_ct_b_start_ * (1.0f - k);
+  w_ = auto_ct_w_start_ + (auto_ct_dim_snapshot_ - auto_ct_w_start_) * k;
+
+  if (r_number_) r_number_->publish_state(r_);
+  if (g_number_) g_number_->publish_state(g_);
+  if (b_number_) b_number_->publish_state(b_);
+  if (w_number_) w_number_->publish_state(w_);
+
+  if (power_) render_();
+
+  if (auto_ct_step_ >= 30) {
+    stop_script_();
   }
-  auto_ct_enabled_ = true;
 }
 
-                                                  // Logika Auto CT (timer)
 void SuperRGBW::handle_auto_ct_time_() {
   if (!auto_ct_enabled_) return;
-  if (!time_) return;
-  if (!auto_ct_start_min_) return;
-  if (!auto_ct_duration_) return;
+  if (!time_ || !auto_ct_start_min_ || !auto_ct_duration_) return;
 
   auto now = time_->now();
   if (!now.is_valid()) return;
@@ -303,20 +303,26 @@ void SuperRGBW::handle_auto_ct_time_() {
   if (start_script_(SCRIPT_AUTO_CT)) {
     auto_ct_start(duration_ms);
   }
-
 }
+
+// ============================================================
+//  ARBITER (SCRIPT_*)
+// ============================================================
 
 bool SuperRGBW::start_script_(ScriptType s) {
   if (active_script_ == s) return true;
 
-  // wizualny blokuje wszystko
   if (active_script_ == SCRIPT_VISUAL)
     return false;
 
   stop_script_();
 
   if (s == SCRIPT_VISUAL) {
-    save_state_();
+    saved_r_ = r_;
+    saved_g_ = g_;
+    saved_b_ = b_;
+    saved_w_ = w_;
+
     if (!power_) {
       effect_forced_power_ = true;
       set_power_immediate_(true);
@@ -329,10 +335,21 @@ bool SuperRGBW::start_script_(ScriptType s) {
 
 void SuperRGBW::stop_script_() {
   if (active_script_ == SCRIPT_VISUAL) {
-    restore_state_();
+    r_ = saved_r_;
+    g_ = saved_g_;
+    b_ = saved_b_;
+    w_ = saved_w_;
+
+    if (r_number_) r_number_->publish_state(r_);
+    if (g_number_) g_number_->publish_state(g_);
+    if (b_number_) b_number_->publish_state(b_);
+    if (w_number_) w_number_->publish_state(w_);
+
     if (effect_forced_power_) {
       set_power_immediate_(false);
       effect_forced_power_ = false;
+    } else if (power_) {
+      render_();
     }
   }
 
@@ -340,88 +357,40 @@ void SuperRGBW::stop_script_() {
   active_visual_ = VISUAL_NONE;
 }
 
-
-                                                  // Efekty
+// ============================================================
+//  EFEKTY WIZUALNE
+// ============================================================
 
 void SuperRGBW::start_visual_(VisualEffect v) {
   if (!start_script_(SCRIPT_VISUAL)) return;
   active_visual_ = v;
 }
 
-
-void SuperRGBW::start_effect_common_(EffectType requested) {
-  if (current_effect_ != EFFECT_NONE) {
-    return; // inny efekt już działa
-  }
-
-  if (auto_ct_running_) {
-    auto_ct_running_ = false;
-    auto_ct_enabled_ = false;
-    if (auto_ct_switch_)
-      auto_ct_switch_->publish_state(false);
-  }
-
-  // zapamiętaj stan
-  saved_r_ = r_;
-  saved_g_ = g_;
-  saved_b_ = b_;
-  saved_w_ = w_;
-
-  // jeśli światło było zgaszone → efekt wymusza power
-  if (!power_) {
-    effect_forced_power_ = true;
-    set_power_immediate_(true);
-  }
-
-current_effect_ = requested;
-
+void SuperRGBW::start_fireplace() {
+  start_visual_(VISUAL_FIREPLACE);
 }
 
-
-void SuperRGBW::stop_effect(EffectType requested) {
-  if (current_effect_ == EFFECT_NONE) return;
-
-  current_effect_ = EFFECT_NONE;
-
-  r_ = saved_r_;
-  g_ = saved_g_;
-  b_ = saved_b_;
-  w_ = saved_w_;
-
-  // przywróć stan RGBW
-  r_ = saved_r_;
-  g_ = saved_g_;
-  b_ = saved_b_;
-  w_ = saved_w_;
-
-  if (r_number_) r_number_->publish_state(r_);
-  if (g_number_) g_number_->publish_state(g_);
-  if (b_number_) b_number_->publish_state(b_);
-  if (w_number_) w_number_->publish_state(w_);
-
-  // jeśli efekt włączył światło → zgaś je
-  if (effect_forced_power_) {
-    set_power_immediate_(false);
-    effect_forced_power_ = false;
-  } else if (power_) {
-    render_();
-  }
+void SuperRGBW::start_alarm() {
+  start_visual_(VISUAL_ALARM);
 }
 
+void SuperRGBW::stop_visual() {
+  stop_script_();
+}
 
 void SuperRGBW::loop_effect_fireplace_() {
   uint32_t now = millis();
   if (now - effect_last_ms_ < 120) return;
   effect_last_ms_ = now;
 
-  float d = dim_;
-  if (d < 0.25f) d = 0.25f;
+  float d = std::max(dim_, 0.25f);
 
   float flicker = esphome::random_float();
-  flicker = flicker * flicker;
+  flicker *= flicker;
 
   float w = d * (0.6f + 0.4f * flicker);
   float r = w * (0.35f + 0.15f * flicker);
+
   r_ = clampf(r, 0.0f, 1.0f);
   g_ = 0.0f;
   b_ = 0.0f;
@@ -437,6 +406,7 @@ void SuperRGBW::loop_effect_alarm_() {
 
   static uint8_t step = 0;
   step = (step + 1) % 4;
+
   switch (step) {
     case 0: r_=1; g_=0; b_=0; w_=0; break;
     case 1: r_=1; g_=1; b_=1; w_=0; break;
@@ -447,7 +417,10 @@ void SuperRGBW::loop_effect_alarm_() {
   if (power_) render_();
 }
 
-                                                  // Render
+// ============================================================
+//  RENDER
+// ============================================================
+
 void SuperRGBW::render_() {
   if (!power_) {
     out_r_->set_level(0);
@@ -464,9 +437,12 @@ void SuperRGBW::render_() {
   out_w_->set_level(w_ * k);
 }
 
-                                                  // Fade time
+// ============================================================
+//  FADE TIME
+// ============================================================
+
 void SuperRGBW::set_fade_time(uint32_t fade_ms) {
   fade_time_ms_ = std::max<uint32_t>(fade_ms, 1);
 }
 
-}
+}  // namespace super_rgbw

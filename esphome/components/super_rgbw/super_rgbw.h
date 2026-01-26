@@ -39,8 +39,9 @@ class SuperRGBW : public esphome::Component {
   //  PUBLICZNE API (używane w YAML / lambdach)
   // ------------------------------------------------------------
 
-  // Efekty wizualne
-  void start_visual(VisualEffect v);
+  // Efekty wizualne (bez enumów w YAML)
+  void start_fireplace();
+  void start_alarm();
   void stop_visual();
 
   // Ręczne sterowanie jasnością
@@ -49,7 +50,6 @@ class SuperRGBW : public esphome::Component {
 
   // Auto CT
   void set_auto_ct_enabled(bool v);
-  void auto_ct_start(uint32_t duration_ms);
 
   // Zasilanie (fade in/out)
   void set_power(bool on);
@@ -111,7 +111,9 @@ class SuperRGBW : public esphome::Component {
   bool start_script_(ScriptType s);
   void stop_script_();
 
-  // Efekty wizualne (wewnętrzne)
+  // ------------------------------------------------------------
+  //  EFEKTY WIZUALNE (wewnętrzne)
+  // ------------------------------------------------------------
   void start_visual_(VisualEffect v);
 
   // ------------------------------------------------------------
@@ -129,6 +131,7 @@ class SuperRGBW : public esphome::Component {
   // ------------------------------------------------------------
   //  AUTO CT (logika)
   // ------------------------------------------------------------
+  void auto_ct_start(uint32_t duration_ms);
   void loop_effect_auto_ct_();
   void handle_auto_ct_time_();
 
@@ -141,7 +144,7 @@ class SuperRGBW : public esphome::Component {
   // ------------------------------------------------------------
   //  STAN OGÓLNY
   // ------------------------------------------------------------
-  ScriptType  active_script_{SCRIPT_NONE};
+  ScriptType   active_script_{SCRIPT_NONE};
   VisualEffect active_visual_{VISUAL_NONE};
 
   bool power_{false};
