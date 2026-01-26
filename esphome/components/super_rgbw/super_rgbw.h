@@ -1,3 +1,5 @@
+#error "SUPER_RGBW HEADER USED"
+
 #pragma once
 
 #include "esphome.h"
