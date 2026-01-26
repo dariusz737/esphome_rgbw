@@ -24,6 +24,9 @@ enum VisualEffect {
 class SuperRGBW : public esphome::Component {
  public:
 
+  void start_visual(VisualEffect v);
+  void stop_visual();
+
                                                   // Cykl zycia ESPHome
   void setup() override;
   void loop() override;
