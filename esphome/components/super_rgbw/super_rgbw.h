@@ -40,9 +40,9 @@ class SuperRGBW : public esphome::Component {
   // ------------------------------------------------------------
 
   // Efekty wizualne (bez enumów w YAML)
-  void start_fireplace();
-  void start_alarm();
-  void stop_visual();
+// Efekty wizualne – API
+void start_visual(VisualEffect v);
+void stop_visual();
 
   // Ręczne sterowanie jasnością
   void dim_manual_toggle();
