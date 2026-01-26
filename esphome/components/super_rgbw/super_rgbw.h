@@ -6,18 +6,20 @@
 namespace super_rgbw {
 
                                                   // Sceny kolorystyczne
-  enum Scene {
-    SCENE_COLD,
-    SCENE_NEUTRAL,
-    SCENE_WARM
-  };
+enum ScriptType {
+  SCRIPT_NONE,
+  SCRIPT_DIM_MANUAL,
+  SCRIPT_AUTO_CT,
+  SCRIPT_VISUAL
+};
 
-                                                  // Efekty
-  enum EffectType {
-    EFFECT_NONE,
-    EFFECT_FIREPLACE,
-    EFFECT_ALARM
-  };
+                                                  // Efekty vizualne
+
+enum VisualEffect {
+  VISUAL_NONE,
+  VISUAL_FIREPLACE,
+  VISUAL_ALARM
+};
                                                   // Glowna klasa komponentu
 class SuperRGBW : public esphome::Component {
  public:
@@ -92,7 +94,6 @@ class SuperRGBW : public esphome::Component {
   void apply_dim_(float target_dim);
   void loop_dim_manual_();
                                                   // Przerwanie Auto CT przez uzytkownika
-  void maybe_cancel_auto_ct_();
 
                                                   // Logika wewnetrzna Auto CT
   void handle_auto_ct_time_();
@@ -141,14 +142,9 @@ class SuperRGBW : public esphome::Component {
   bool fading_off_{false};
 
                                                   // Reczne dimowanie
-  bool dim_manual_running_{false};
-  bool dim_manual_dir_up_{true};
-  uint32_t dim_manual_last_ms_{0};
 
                                                   // Auto CT
   bool auto_ct_enabled_{false};
-  bool auto_ct_running_{false};
-  bool auto_ct_internal_change_{false};
 
   uint8_t auto_ct_step_{0};
   uint32_t auto_ct_last_ms_{0};
@@ -183,12 +179,15 @@ class SuperRGBW : public esphome::Component {
   void loop_effect_fireplace_();
   void loop_effect_alarm_();
 
-  void dim_stop_forced_();
-
   uint32_t effect_last_ms_{0};
   uint8_t effect_step_{0};
 
-  EffectType current_effect_{EFFECT_NONE};
+  ScriptType active_script_{SCRIPT_NONE};
+  VisualEffect active_visual_{VISUAL_NONE};
+
+  bool start_script_(ScriptType s);
+  void stop_script_();
+  void start_visual_(VisualEffect v);
 
 };
 

@@ -32,50 +32,39 @@ void SuperRGBW::setup() {
 }
                                                   // Loop
 void SuperRGBW::loop() {
-  if (current_effect_ != EFFECT_NONE) {
-    switch (current_effect_) {
-      case EFFECT_FIREPLACE:
-        loop_effect_fireplace_();
-        return;
 
-      case EFFECT_ALARM:
-        loop_effect_alarm_();
-        return;
+  // --- arbiter sterowania ---
+  switch (active_script_) {
 
-      default:
-        break;
-    }
-  }
-  if (auto_ct_running_) {
-    uint32_t now = millis();
-    if (now - auto_ct_last_ms_ >= auto_ct_step_interval_ms_) {
-      auto_ct_last_ms_ = now;
-      auto_ct_step_++;
+    case SCRIPT_DIM_MANUAL:
+      loop_dim_manual_();
+      break;
 
-      float k = float(auto_ct_step_) / 30.0f;
+    case SCRIPT_AUTO_CT:
+      loop_effect_auto_ct_();
+      break;
 
-      auto_ct_internal_change_ = true;
+    case SCRIPT_VISUAL:
+      switch (active_visual_) {
+        case VISUAL_FIREPLACE:
+          loop_effect_fireplace_();
+          break;
 
-      r_ = auto_ct_r_start_ * (1.0f - k);
-      g_ = auto_ct_g_start_ * (1.0f - k);
-      b_ = auto_ct_b_start_ * (1.0f - k);
-      w_ = auto_ct_w_start_ + (auto_ct_dim_snapshot_ - auto_ct_w_start_) * k;
+        case VISUAL_ALARM:
+          loop_effect_alarm_();
+          break;
 
-      if (r_number_) r_number_->publish_state(r_);
-      if (g_number_) g_number_->publish_state(g_);
-      if (b_number_) b_number_->publish_state(b_);
-      if (w_number_) w_number_->publish_state(w_);
-
-      auto_ct_internal_change_ = false;
-
-      if (power_) render_();
-
-      if (auto_ct_step_ >= 30) {
-        auto_ct_running_ = false;
+        default:
+          break;
       }
-    }
+      break;
+
+    case SCRIPT_NONE:
+    default:
+      break;
   }
 
+  // --- fade (ZAWSZE) ---
   if (fade_level_ != fade_target_) {
     uint32_t now = millis();
     float t = float(now - fade_start_ms_) / float(fade_time_ms_);
@@ -94,13 +83,13 @@ void SuperRGBW::loop() {
     render_();
   }
 
-  loop_dim_manual_();
+  // --- tylko TRIGGER auto CT ---
   handle_auto_ct_time_();
 }
 
+
                                                   // Power
 void SuperRGBW::set_power(bool on) {
-  dim_stop_forced_();
 
   fade_start_ = fade_level_;
   fade_target_ = on ? 1.0f : 0.0f;
@@ -123,8 +112,6 @@ void SuperRGBW::set_power_immediate_(bool on) {
 }
                                                   // RGBW
 void SuperRGBW::set_r(float v) {
-  maybe_cancel_auto_ct_();
-  dim_stop_forced_();
 
   r_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -133,8 +120,6 @@ void SuperRGBW::set_r(float v) {
 }
 
 void SuperRGBW::set_g(float v) {
-  maybe_cancel_auto_ct_();
-  dim_stop_forced_();
 
   g_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -143,8 +128,6 @@ void SuperRGBW::set_g(float v) {
 }
 
 void SuperRGBW::set_b(float v) {
-  maybe_cancel_auto_ct_();
-  dim_stop_forced_();
 
   b_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -153,8 +136,6 @@ void SuperRGBW::set_b(float v) {
 }
 
 void SuperRGBW::set_w(float v) {
-  maybe_cancel_auto_ct_();
-  dim_stop_forced_();
 
   w_ = clampf(v, 0.0f, 1.0f);
   update_dim_from_channels_();
@@ -163,8 +144,6 @@ void SuperRGBW::set_w(float v) {
 }
 
 void SuperRGBW::set_dim(float v) {
-  maybe_cancel_auto_ct_();
-  dim_stop_forced_();
 
   apply_dim_(clampf(v, DIM_FLOOR, 1.0f));
   if (dim_number_) dim_number_->publish_state(dim_);
@@ -209,20 +188,14 @@ void SuperRGBW::apply_dim_(float target_dim) {
 
                                                   // Reczne dimowanie
 void SuperRGBW::dim_manual_toggle() {
-  if (current_effect_ != EFFECT_NONE) {
-    return;
-  }
-  if (!dim_manual_running_) {
-    dim_manual_running_ = true;
+  if (active_script_ != SCRIPT_DIM_MANUAL) {
+    start_script_(SCRIPT_DIM_MANUAL);
     dim_manual_dir_up_ = (dim_ < 0.5f);
   } else {
     dim_manual_dir_up_ = !dim_manual_dir_up_;
   }
 }
 
-void SuperRGBW::dim_stop_forced_() {
-  dim_manual_running_ = false;
-}
 
 void SuperRGBW::loop_dim_manual_() {
   if (!dim_manual_running_) return;
@@ -243,15 +216,13 @@ void SuperRGBW::loop_dim_manual_() {
 }
 
 void SuperRGBW::dim_manual_stop() {
-  if (dim_manual_running_) {
-    dim_manual_running_ = false;
-  }
+  if (active_script_ == SCRIPT_DIM_MANUAL)
+    stop_script_();
 }
+
 
                                                   // Sceny
 void SuperRGBW::set_scene(Scene scene) {
-  maybe_cancel_auto_ct_();
-  dim_stop_forced_();
 
   current_scene_ = scene;
   float d = dim_;
@@ -273,8 +244,6 @@ void SuperRGBW::set_scene(Scene scene) {
 
 void SuperRGBW::next_scene() {
   set_scene(current_scene_ == SCENE_WARM ? SCENE_COLD : Scene(current_scene_ + 1));
-
-  dim_stop_forced_();
 }
 
 
@@ -285,7 +254,6 @@ void SuperRGBW::scene_warm()    { set_scene(SCENE_WARM); }
                                                   // Auto CT start
 void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
   if (!auto_ct_enabled_) return;
-  dim_stop_forced_();
 
   auto_ct_running_ = true;
   auto_ct_step_ = 0;
@@ -299,26 +267,10 @@ void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
   auto_ct_dim_snapshot_ = dim_;
 }
 
-                                                  // Przerwanie Auto CT przez uzytkownika
-void SuperRGBW::maybe_cancel_auto_ct_() {
-  if (auto_ct_internal_change_) return;
-
-  if (!auto_ct_running_) return;
-  if (auto_ct_running_) {
-
-    auto_ct_running_ = false;
-    auto_ct_enabled_ = false;
-
-    if (auto_ct_switch_) {
-      auto_ct_switch_->publish_state(false);
-    }
-  }
-}
 
                                                   // Auto CT wlacz/wy
 void SuperRGBW::set_auto_ct_enabled(bool v) {
   if (!v) {
-    maybe_cancel_auto_ct_();
     return;
   }
   auto_ct_enabled_ = true;
@@ -348,20 +300,59 @@ void SuperRGBW::handle_auto_ct_time_() {
   uint32_t duration_ms =
       uint32_t(auto_ct_duration_->state) * 60000UL;
 
-  auto_ct_start(duration_ms);
+  if (start_script_(SCRIPT_AUTO_CT)) {
+    auto_ct_start(duration_ms);
+  }
+
 }
+
+bool SuperRGBW::start_script_(ScriptType s) {
+  if (active_script_ == s) return true;
+
+  // wizualny blokuje wszystko
+  if (active_script_ == SCRIPT_VISUAL)
+    return false;
+
+  stop_script_();
+
+  if (s == SCRIPT_VISUAL) {
+    save_state_();
+    if (!power_) {
+      effect_forced_power_ = true;
+      set_power_immediate_(true);
+    }
+  }
+
+  active_script_ = s;
+  return true;
+}
+
+void SuperRGBW::stop_script_() {
+  if (active_script_ == SCRIPT_VISUAL) {
+    restore_state_();
+    if (effect_forced_power_) {
+      set_power_immediate_(false);
+      effect_forced_power_ = false;
+    }
+  }
+
+  active_script_ = SCRIPT_NONE;
+  active_visual_ = VISUAL_NONE;
+}
+
 
                                                   // Efekty
 
-void SuperRGBW::start_effect(EffectType requested) {
-  start_effect_common_(requested);
+void SuperRGBW::start_visual_(VisualEffect v) {
+  if (!start_script_(SCRIPT_VISUAL)) return;
+  active_visual_ = v;
 }
+
 
 void SuperRGBW::start_effect_common_(EffectType requested) {
   if (current_effect_ != EFFECT_NONE) {
     return; // inny efekt już działa
   }
-  dim_stop_forced_();
 
   if (auto_ct_running_) {
     auto_ct_running_ = false;
@@ -389,7 +380,6 @@ current_effect_ = requested;
 
 void SuperRGBW::stop_effect(EffectType requested) {
   if (current_effect_ == EFFECT_NONE) return;
-  dim_stop_forced_();
 
   current_effect_ = EFFECT_NONE;
 
