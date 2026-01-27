@@ -1,3 +1,4 @@
+print("SUPER_RGBW LOADED – NEW SCHEMA")
 import esphome.codegen as cg
 import esphome.config_validation as cv
 
