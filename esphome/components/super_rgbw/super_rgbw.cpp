@@ -14,14 +14,72 @@ static inline float clampf(float v, float lo, float hi) {
 
                                                   // Setup
 void SuperRGBW::setup() {
-  if (auto_ct_switch_) {
-    auto_ct_switch_->add_on_state_callback(
-      [this](bool state) {
-        this->set_auto_ct_enabled(state);
+
+  // --- Power switch ---
+  if (power_switch_) {
+    power_switch_->add_on_state_callback(
+      [this](bool s) {
+        set_power(s);
       }
     );
   }
 
+  // --- Auto CT switch ---
+  if (auto_ct_switch_) {
+    auto_ct_switch_->add_on_state_callback(
+      [this](bool state) {
+        set_auto_ct_enabled(state);
+      }
+    );
+  }
+
+  // --- DIM start / stop ---
+  if (dim_start_) {
+    dim_start_->add_on_state_callback(
+      [this](bool s) {
+        if (s) dim_manual_toggle();
+      }
+    );
+  }
+
+  if (dim_stop_) {
+    dim_stop_->add_on_state_callback(
+      [this](bool s) {
+        if (s) dim_manual_stop();
+      }
+    );
+  }
+
+  // --- Scene buttons ---
+  if (scene_cold_button_)
+    scene_cold_button_->add_on_press_callback([this]() { scene_cold(); });
+
+  if (scene_neutral_button_)
+    scene_neutral_button_->add_on_press_callback([this]() { scene_neutral(); });
+
+  if (scene_warm_button_)
+    scene_warm_button_->add_on_press_callback([this]() { scene_warm(); });
+
+  if (scene_next_button_)
+    scene_next_button_->add_on_press_callback([this]() { next_scene(); });
+
+  // --- Effect buttons ---
+  if (effect_fireplace_button_)
+    effect_fireplace_button_->add_on_press_callback(
+      [this]() { start_effect(EFFECT_FIREPLACE); }
+    );
+
+  if (effect_alarm_button_)
+    effect_alarm_button_->add_on_press_callback(
+      [this]() { start_effect(EFFECT_ALARM); }
+    );
+
+  if (effect_stop_button_)
+    effect_stop_button_->add_on_press_callback(
+      [this]() { stop_effect(EFFECT_NONE); }
+    );
+
+  // --- Init values from numbers ---
   if (r_number_) r_ = r_number_->state;
   if (g_number_) g_ = g_number_->state;
   if (b_number_) b_ = b_number_->state;
@@ -30,6 +88,7 @@ void SuperRGBW::setup() {
 
   render_();
 }
+
                                                   // Loop
 void SuperRGBW::loop() {
   if (current_effect_ != EFFECT_NONE) {
@@ -46,6 +105,7 @@ void SuperRGBW::loop() {
         break;
     }
   }
+
   if (auto_ct_running_) {
     uint32_t now = millis();
     if (now - auto_ct_last_ms_ >= auto_ct_step_interval_ms_) {
@@ -113,7 +173,8 @@ void SuperRGBW::set_power(bool on) {
     fading_off_ = true;
   }
 }
-                                                    // Power natychmiast bez fade
+
+                                                  // Power natychmiast bez fade
 void SuperRGBW::set_power_immediate_(bool on) {
   power_ = on;
   fade_level_ = on ? 1.0f : 0.0f;
@@ -121,6 +182,7 @@ void SuperRGBW::set_power_immediate_(bool on) {
   fading_off_ = false;
   render_();
 }
+
                                                   // RGBW
 void SuperRGBW::set_r(float v) {
   maybe_cancel_auto_ct_();
@@ -209,9 +271,8 @@ void SuperRGBW::apply_dim_(float target_dim) {
 
                                                   // Reczne dimowanie
 void SuperRGBW::dim_manual_toggle() {
-  if (current_effect_ != EFFECT_NONE) {
-    return;
-  }
+  if (current_effect_ != EFFECT_NONE) return;
+
   if (!dim_manual_running_) {
     dim_manual_running_ = true;
     dim_manual_dir_up_ = (dim_ < 0.5f);
@@ -243,9 +304,7 @@ void SuperRGBW::loop_dim_manual_() {
 }
 
 void SuperRGBW::dim_manual_stop() {
-  if (dim_manual_running_) {
-    dim_manual_running_ = false;
-  }
+  dim_manual_running_ = false;
 }
 
                                                   // Sceny
@@ -273,16 +332,14 @@ void SuperRGBW::set_scene(Scene scene) {
 
 void SuperRGBW::next_scene() {
   set_scene(current_scene_ == SCENE_WARM ? SCENE_COLD : Scene(current_scene_ + 1));
-
   dim_stop_forced_();
 }
-
 
 void SuperRGBW::scene_cold()    { set_scene(SCENE_COLD); }
 void SuperRGBW::scene_neutral() { set_scene(SCENE_NEUTRAL); }
 void SuperRGBW::scene_warm()    { set_scene(SCENE_WARM); }
 
-                                                  // Auto CT start
+                                                  // Auto CT
 void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
   if (!auto_ct_enabled_) return;
   dim_stop_forced_();
@@ -299,23 +356,17 @@ void SuperRGBW::auto_ct_start(uint32_t duration_ms) {
   auto_ct_dim_snapshot_ = dim_;
 }
 
-                                                  // Przerwanie Auto CT przez uzytkownika
 void SuperRGBW::maybe_cancel_auto_ct_() {
   if (auto_ct_internal_change_) return;
-
   if (!auto_ct_running_) return;
-  if (auto_ct_running_) {
 
-    auto_ct_running_ = false;
-    auto_ct_enabled_ = false;
+  auto_ct_running_ = false;
+  auto_ct_enabled_ = false;
 
-    if (auto_ct_switch_) {
-      auto_ct_switch_->publish_state(false);
-    }
-  }
+  if (auto_ct_switch_)
+    auto_ct_switch_->publish_state(false);
 }
 
-                                                  // Auto CT wlacz/wy
 void SuperRGBW::set_auto_ct_enabled(bool v) {
   if (!v) {
     maybe_cancel_auto_ct_();
@@ -324,12 +375,9 @@ void SuperRGBW::set_auto_ct_enabled(bool v) {
   auto_ct_enabled_ = true;
 }
 
-                                                  // Logika Auto CT (timer)
 void SuperRGBW::handle_auto_ct_time_() {
-  if (!auto_ct_enabled_) return;
-  if (!time_) return;
-  if (!auto_ct_start_min_) return;
-  if (!auto_ct_duration_) return;
+  if (!auto_ct_enabled_ || !time_ || !auto_ct_start_min_ || !auto_ct_duration_)
+    return;
 
   auto now = time_->now();
   if (!now.is_valid()) return;
@@ -352,15 +400,12 @@ void SuperRGBW::handle_auto_ct_time_() {
 }
 
                                                   // Efekty
-
 void SuperRGBW::start_effect(EffectType requested) {
   start_effect_common_(requested);
 }
 
 void SuperRGBW::start_effect_common_(EffectType requested) {
-  if (current_effect_ != EFFECT_NONE) {
-    return; // inny efekt już działa
-  }
+  if (current_effect_ != EFFECT_NONE) return;
   dim_stop_forced_();
 
   if (auto_ct_running_) {
@@ -370,24 +415,20 @@ void SuperRGBW::start_effect_common_(EffectType requested) {
       auto_ct_switch_->publish_state(false);
   }
 
-  // zapamiętaj stan
   saved_r_ = r_;
   saved_g_ = g_;
   saved_b_ = b_;
   saved_w_ = w_;
 
-  // jeśli światło było zgaszone → efekt wymusza power
   if (!power_) {
     effect_forced_power_ = true;
     set_power_immediate_(true);
   }
 
-current_effect_ = requested;
-
+  current_effect_ = requested;
 }
 
-
-void SuperRGBW::stop_effect(EffectType requested) {
+void SuperRGBW::stop_effect(EffectType) {
   if (current_effect_ == EFFECT_NONE) return;
   dim_stop_forced_();
 
@@ -398,18 +439,11 @@ void SuperRGBW::stop_effect(EffectType requested) {
   b_ = saved_b_;
   w_ = saved_w_;
 
-  // przywróć stan RGBW
-  r_ = saved_r_;
-  g_ = saved_g_;
-  b_ = saved_b_;
-  w_ = saved_w_;
-
   if (r_number_) r_number_->publish_state(r_);
   if (g_number_) g_number_->publish_state(g_);
   if (b_number_) b_number_->publish_state(b_);
   if (w_number_) w_number_->publish_state(w_);
 
-  // jeśli efekt włączył światło → zgaś je
   if (effect_forced_power_) {
     set_power_immediate_(false);
     effect_forced_power_ = false;
@@ -418,20 +452,19 @@ void SuperRGBW::stop_effect(EffectType requested) {
   }
 }
 
-
 void SuperRGBW::loop_effect_fireplace_() {
   uint32_t now = millis();
   if (now - effect_last_ms_ < 120) return;
   effect_last_ms_ = now;
 
-  float d = dim_;
-  if (d < 0.25f) d = 0.25f;
+  float d = std::max(dim_, 0.25f);
 
   float flicker = esphome::random_float();
-  flicker = flicker * flicker;
+  flicker *= flicker;
 
   float w = d * (0.6f + 0.4f * flicker);
   float r = w * (0.35f + 0.15f * flicker);
+
   r_ = clampf(r, 0.0f, 1.0f);
   g_ = 0.0f;
   b_ = 0.0f;
@@ -447,6 +480,7 @@ void SuperRGBW::loop_effect_alarm_() {
 
   static uint8_t step = 0;
   step = (step + 1) % 4;
+
   switch (step) {
     case 0: r_=1; g_=0; b_=0; w_=0; break;
     case 1: r_=1; g_=1; b_=1; w_=0; break;
@@ -479,4 +513,4 @@ void SuperRGBW::set_fade_time(uint32_t fade_ms) {
   fade_time_ms_ = std::max<uint32_t>(fade_ms, 1);
 }
 
-}
+}  // namespace super_rgbw
