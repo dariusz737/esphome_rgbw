@@ -47,7 +47,7 @@ class SuperRGBW : public esphome::Component {
 // Efekty wizualne – API
   void start_fireplace();
   void start_alarm();
-  void stop_visual();§
+  void stop_visual();
 
   // Ręczne sterowanie jasnością
   void dim_manual_toggle();
